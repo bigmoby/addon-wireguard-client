@@ -69,10 +69,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-[original_project]: https://github.com/hassio-addons/addon-wireguard
-[contributors]: https://github.com/bigmoby/addon-wireguard/graphs/contributors
-
-
+[original_project]: https://github.com/bigmoby/addon-wireguard-client
+[contributors]: https://github.com/bigmoby/addon-wireguard-client/graphs/contributors
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
@@ -82,14 +80,7 @@ SOFTWARE.
 [discord-ha]: https://discord.gg/c5DvZ4e
 [discord-shield]: https://img.shields.io/discord/478094546522079232.svg
 [discord]: https://discord.me/hassioaddons
-[docs]: https://github.com/hassio-addons/addon-wireguard/blob/master/wireguard/DOCS.md
-[forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg
-[forum]: https://community.home-assistant.io/t/home-assistant-community-add-on-wireguard/134662?u=frenck
-[frenck]: https://github.com/frenck
-[github-sponsors-shield]: https://frenck.dev/wp-content/uploads/2019/12/github_sponsor.png
-[github-sponsors]: https://github.com/sponsors/frenck
-[gitlabci-shield]: https://gitlab.com/hassio-addons/addon-wireguard/badges/master/pipeline.svg
-[gitlabci]: https://gitlab.com/hassio-addons/addon-wireguard/pipelines
+[docs]: https://github.com/bigmoby/addon-wireguard-client/blob/master/wireguard/DOCS.md
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [issue]: https://github.com/hassio-addons/addon-wireguard/issues
 [license-shield]: https://img.shields.io/github/license/hassio-addons/addon-wireguard.svg

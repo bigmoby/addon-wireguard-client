@@ -3,7 +3,7 @@
   "version":"0.0.1-SNAPSHOT",
   "slug":"wireguard_client",
   "description":"Fast, modern, secure VPN tunnel",
-  "url":"https://github.com/bigmoby/addon-wireguard",
+  "url":"https://github.com/bigmoby/addon-wireguard-client",
   "startup":"application",
   "arch":[
      "aarch64",
