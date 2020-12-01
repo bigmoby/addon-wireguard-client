@@ -45,8 +45,7 @@
         "pre_shared_key": "",
         "endpoint": "xxxxxx.duckdns.com",
         "allowed_ips":[
-           "0.0.0.0/0",
-           "::0/0"
+           "10.6.0.1"
         ],
         "persistent_keep_alive": "25"
      }
