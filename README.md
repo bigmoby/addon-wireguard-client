@@ -42,7 +42,7 @@ Fabio Mauro
 
 ## Authors & contributors
 
-Fabio MAuro Bigmoby
+Fabio Mauro Bigmoby
 
 Project forked from [Wireguard add-on][original_project].
 
