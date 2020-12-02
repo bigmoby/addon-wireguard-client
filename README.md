@@ -30,12 +30,16 @@ We have set up a separate document containing our
 
 Thank you for being involved! :heart_eyes:
 
-## Authors & contributors
+## Sponsor
 
-Fabio Mauro aka Bigmoby
+Please, if You want support this king of projects:
 
 <a href="https://www.buymeacoffee.com/bigmoby" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
+Many Thanks,
+Fabio Mauro
+
+## Authors & contributors
 
 Project forked from [Wireguard add-on][original_project].
 
@@ -69,7 +73,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-[original_project]: https://github.com/bigmoby/addon-wireguard-client
+[original_project]: https://github.com/hassio-addons/addon-wireguard
 [contributors]: https://github.com/bigmoby/addon-wireguard-client/graphs/contributors
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
