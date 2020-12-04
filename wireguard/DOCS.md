@@ -57,8 +57,8 @@ and then forwards it accordingly.
 Basically, it allows for data coming in from your VPN client will be routed to
 other places like your home network, or the internet.
 
-To enable IP forwarding, run the following commands directly on your **host**
-system (e.g., Ubuntu, Debian).
+To enable IP forwarding, run the following commands directly on your **host** HASSIO
+system.
 
 ```bash
 sudo sysctl -w net.ipv4.ip_forward=1
