@@ -79,7 +79,7 @@ function run_supervisor() {
         -v /run/docker.sock:/run/docker.sock \
         -v /run/dbus:/run/dbus \
         -v /tmp/supervisor_data:/data \
-        -v "/workspaces/addons":/data/addons/local \
+        -v "/workspaces/addon-wireguard-client":/data/addons/local \
         -v /etc/machine-id:/etc/machine-id:ro \
         -e SUPERVISOR_SHARE="/tmp/supervisor_data" \
         -e SUPERVISOR_NAME=hassio_supervisor \
