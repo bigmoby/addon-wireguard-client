@@ -71,5 +71,6 @@
          ],
          "persistent_keep_alive":"int"
       }
-   }
+   },
+   "image": "bigmoby/{arch}-addon-wireguard-client"
  }
