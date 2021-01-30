@@ -1,0 +1,14 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Home Assistant Community Add-on: WireGuard Client
+# Runs WireGuard
+# ==============================================================================
+declare interface
+
+bashio::log.info "Stop WireGuard Client container..."
+
+# Get the interface
+interface="wg0"
+
+# Run the WireGuard
+exec wg-quick down "${interface}"

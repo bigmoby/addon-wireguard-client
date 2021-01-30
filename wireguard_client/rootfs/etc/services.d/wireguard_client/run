@@ -1,11 +1,11 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
-# Home Assistant Community Add-on: WireGuard
-# Runs WireGuard
+# Home Assistant Community Add-on: WireGuard Client
+# Runs WireGuard Client
 # ==============================================================================
 declare interface
 
-s6-svc -O /var/run/s6/services/wireguard
+s6-svc -O /var/run/s6/services/wireguard_client
 
 bashio::log.info "Starting WireGuard Client..."
 
