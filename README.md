@@ -20,6 +20,12 @@ WireGuard is currently under heavy development, but already it might be
 regarded as the most secure, easiest to use, and the simplest VPN solution
 in the industry.
 
+## Breaking Changes
+###  Docker Hub pre-build add-on
+
+Update migration process from version 0.0.3-SNAPSHOT to version 0.0.4-SNAPSHOT fails because of new Docker Hub pre-build support.
+__So you must remove and install the new add-on version manually.__
+
 ## Contributing
 
 This is an active open-source project. We are always open to people who want to

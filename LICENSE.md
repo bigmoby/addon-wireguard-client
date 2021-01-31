@@ -1,5 +1,7 @@
 # MIT License
 
+Copyright (c) 2020-2021 Fabio Mauro
+
 Copyright (c) 2019-2020 Franck Nijhof
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
