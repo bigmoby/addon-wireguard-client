@@ -21,10 +21,20 @@ regarded as the most secure, easiest to use, and the simplest VPN solution
 in the industry.
 
 ## Breaking Changes
-###  Docker Hub pre-build add-on
 
-Update migration process from version 0.0.3-SNAPSHOT to version 0.0.4-SNAPSHOT fails because of new Docker Hub pre-build support.
-__So you must remove and install the new add-on version manually.__
+* __New repository url__
+
+From version ___0.1.0___ will be dismissed the current repository and this will be the new repository url: 
+
+```text
+https://github.com/bigmoby/hassio-repository-addon
+
+```
+
+* __Docker Hub pre-build add-on__
+
+Update migration process from version ___0.0.3-SNAPSHOT___ to version ___0.0.4-SNAPSHOT___ fails because of new Docker Hub pre-build support.
+__SO YOU MUST REMOVE AND INSTALL THE NEW ADD-ON VERSION__ ___MANUALLY.___
 
 ## Contributing
 
