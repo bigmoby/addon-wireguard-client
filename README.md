@@ -28,7 +28,6 @@ From version ___0.1.0___ will be dismissed the current repository and this will 
 
 ```text
 https://github.com/bigmoby/hassio-repository-addon
-
 ```
 
 * __Docker Hub pre-build add-on__
