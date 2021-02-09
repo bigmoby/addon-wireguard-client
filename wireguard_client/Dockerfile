@@ -1,4 +1,4 @@
-ARG BUILD_FROM=hassioaddons/base:8.0.6
+ARG BUILD_FROM=ghcr.io/hassio-addons/base/amd64:9.1.2
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -9,8 +9,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3003
 RUN \
     apk add --no-cache \
-        openresolv=3.10.0-r0 \
-        wireguard-tools=1.0.20200510-r0 
+        openresolv=3.12.0-r0 \
+        wireguard-tools=1.0.20200827-r1 
 
 # Copy root filesystem
 COPY rootfs /
