@@ -2,6 +2,9 @@
 
 ## 🧰 Maintenance
 
+- Add the PostUp and PostDown custom parameters
+## 🧰 Maintenance
+
 - Update add-on configuration for Supervisor 2021.2
 
 ## ⬆️ Dependency updates
