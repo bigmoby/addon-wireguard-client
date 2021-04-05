@@ -63,9 +63,6 @@ fi
 dns=$(IFS=", "; echo "${listDns[*]}")
 echo "DNS = ${dns}" >> "${config}"
 
-# Post Up & Down defaults
-post_up="iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE"
-post_down="iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE"
 if [[ $(</proc/sys/net/ipv4/ip_forward) -eq 0 ]]; then
     bashio::log.warning
     bashio::log.warning "IP forwarding is disabled on the host system!"
@@ -78,9 +75,22 @@ if [[ $(</proc/sys/net/ipv4/ip_forward) -eq 0 ]]; then
     bashio::log.warning
 fi
 
-# Post up & down
-echo "PostUp = ${post_up}" >> "${config}"
-echo "PostDown = ${post_down}" >> "${config}"
+# Post Up & Down defaults
+# Check if custom post_up value
+if ! bashio::config.has_value 'interface.post_up'; then
+    bashio::exit.nok 'post_up command is required'
+else
+    post_up=$(bashio::config 'interface.post_up')
+   echo "PostUp = ${post_up}" >> "${config}"
+fi
+
+# Check if custom post_down value
+if ! bashio::config.has_value 'interface.post_down'; then
+    bashio::exit.nok 'post_down command is required'
+else
+    post_up=$(bashio::config 'interface.post_down')
+   echo "PostDown = ${post_down}" >> "${config}"
+fi
 
 # Status API Storage
 if ! bashio::fs.directory_exists '/var/lib/wireguard'; then
