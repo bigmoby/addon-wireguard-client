@@ -3,9 +3,10 @@
 ## 💣 Breaking changes
 
 - Add the PostUp and PostDown custom parameters
-- 💣 Breaking changes: add these lines to your current configuration 
+- 💣 Breaking changes: add these lines to your current configuration:
+
  `post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE`
- 
+
  `post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE`
 
 ## 🧰 Maintenance
