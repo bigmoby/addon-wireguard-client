@@ -19,7 +19,19 @@ RUN \
         xz-utils
 
 # Install docker
-RUN curl -fsSL https://get.docker.com | sh -
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        software-properties-common \
+        gpg-agent \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
+    && add-apt-repository "deb https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install shellcheck
 RUN \

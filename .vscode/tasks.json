@@ -6,18 +6,17 @@
         {
             "label": "Start Home Assistant",
             "type": "shell",
-            "command": "/workspaces/addon-wireguard-client/.devcontainer/supervisor.sh",
+            "command": "./.devcontainer/supervisor.sh",
             "group": {
                 "kind": "test",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
             },
             "problemMatcher": []
-        },
-        {
+        },{
             "label": "Run Home Assistant CLI",
             "type": "shell",
             "command": "docker exec -ti hassio_cli /usr/bin/cli.sh",
