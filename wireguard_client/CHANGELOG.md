@@ -1,18 +1,14 @@
-## What’s changed
+## What’s changed in Wireguard Client Add-on v0.1.6 
 
-## 💣 Breaking changes
+## 🚀 Improvements
 
-- Add the PostUp and PostDown custom parameters
-- 💣 Breaking changes: add these lines to your current configuration:
+- Optional `pre_shared_key` parameter
+- Simple Rest API in order to expose Wireguard status in `sensor` configuration
 
- `post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE`
+## 🛠 Fixs
 
- `post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE`
-
-## 🧰 Maintenance
-
-- Update add-on configuration for Supervisor 2021.2
+- `interface.address` is not hardcoded to its `/24` mask ~> if mask not specified then `/24`will be applied otherwise it is possible to assign `10.6.0.0/32`
 
 ## ⬆️ Dependency updates
 
-- Upgrade add-on base image to 9.1.2
+- Upgrade add-on base image to 9.2.0

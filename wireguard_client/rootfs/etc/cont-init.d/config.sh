@@ -5,7 +5,6 @@
 # ==============================================================================
 declare -a list
 declare address
-declare tmp_address
 declare allowed_ips
 declare config
 declare dns
@@ -45,8 +44,8 @@ fi
 if ! bashio::config.has_value 'interface.address'; then
     bashio::exit.nok 'You need a address configured for the interface client'
 else
-   tmp_address=$(bashio::config 'interface.address')
-   address="${tmp_address}/24"
+    address=$(bashio::config 'interface.address')
+    [[ "${address}" == *"/"* ]] || address="${address}/24"   
    echo "Address = ${address}" >> "${config}"
 fi
 
@@ -111,9 +110,7 @@ fi
 
 # Check if pre_shared key value and if true get the peer pre_shared key
 pre_shared_key=""
-if ! bashio::config.has_value 'peer.pre_shared_key'; then
-    bashio::exit.nok 'You need a pre_shared_key configured for the peer'
-else
+if  bashio::config.has_value 'peer.pre_shared_key'; then
     pre_shared_key=$(bashio::config 'peer.pre_shared_key')
 fi
 
@@ -145,6 +142,7 @@ if bashio::config.has_value "peer.allowed_ips"; then
 else
     bashio::exit.nok 'You need a allowed_ips configured for the peer'
 fi
+
 allowed_ips=$(IFS=", "; echo "${list[*]}")
 
 # Start writing peer information in client config
@@ -152,7 +150,10 @@ allowed_ips=$(IFS=", "; echo "${list[*]}")
     echo ""
     echo "[Peer]"
     echo "PublicKey = ${peer_public_key}"
-    echo "PreSharedKey = ${pre_shared_key}"
+    if [ ! $pre_shared_key == "" ]
+    then
+        echo "PreSharedKey = ${pre_shared_key}"
+    fi
     echo "Endpoint = ${endpoint}"
     echo "AllowedIPs = ${allowed_ips}"
     echo "PersistentKeepalive = ${keep_alive}"

@@ -57,7 +57,7 @@ interface:
   post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
   post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
 peer:
-  public_key: your-public-key=
+  public_key: your-public-key
   pre_shared_key: your-preshared-key
   endpoint: 'xxxxxxxxxxxxxxx.duckdns.org:51820'
   allowed_ips:

@@ -1,6 +1,6 @@
 {
    "name":"WireGuard Client",
-   "version":"0.1.5",
+   "version":"0.1.6",
    "slug":"wireguard_client",
    "description":"Fast, modern, secure Wireguard tunnel (client)",
    "url":"https://github.com/bigmoby/addon-wireguard-client",
@@ -16,9 +16,11 @@
    "init":false,
    "full_access": false,
    "ports":{
+      "80/tcp": null,
       "51820/udp": 51820
    },
    "ports_description":{
+      "80/tcp": "WireGuard client status API",
       "51820/udp":"WireGuard: forward this port in your router"
    },
    "hassio_api":true,
