@@ -1,6 +1,6 @@
 {
    "name":"WireGuard Client",
-   "version":"0.1.6",
+   "version":"0.1.7",
    "slug":"wireguard_client",
    "description":"Fast, modern, secure Wireguard tunnel (client)",
    "url":"https://github.com/bigmoby/addon-wireguard-client",
