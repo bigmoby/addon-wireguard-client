@@ -1,3 +1,14 @@
+## What’s changed in Wireguard Client Add-on v0.1.8 
+### 🛠 Fixs
+
+- hotfix to REST API service port (thanks to Klaus-Uwe Mitterer https://github.com/kumitterer)
+
+### 🚀 Improvements
+
+- Removing unuseful default Wireguard port specification field
+- Upgrade add-on base image to 10.0.1
+- Upgrade wireguard-tools version to 1.0.20210424-r0
+
 ## What’s changed in Wireguard Client Add-on v0.1.7 
 ### 🛠 Fixs
 
