@@ -12,6 +12,9 @@ declare peer
 declare transfer_rx
 declare transfer_tx
 
+PORT=$(bashio::addon.port "80/tcp")
+if [[ $PORT -eq 0 ]]; then exit; fi
+
 while true; do
     # Get information from wg
     peers=()
@@ -28,9 +31,9 @@ while true; do
                     'latest_handshake' "^${latest_handshake}" \
                     'transfer_rx' "^${transfer_rx}" \
                     'transfer_tx' "^${transfer_tx}")
-                    
+
             peers+=("peer_${count}" "${peer}")
-            (( count++ )) 
+            (( count++ ))
         fi
     done <<< "$(wg show all dump)"
 
@@ -39,7 +42,7 @@ while true; do
     if [[ "${#peers[@]}" -ne 0 ]]; then
         json=$(bashio::var.json "${peers[@]}")
     fi
-    
+
     echo -e "HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n${json}" \
-        | nc -l -p 80 > /dev/null
+        | nc -l -p $PORT > /dev/null
 done
