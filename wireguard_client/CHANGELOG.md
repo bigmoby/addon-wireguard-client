@@ -1,7 +1,7 @@
 ## What’s changed in Wireguard Client Add-on v0.1.8 
 ### 🛠 Fixs
 
-- hotfix to REST API service port (thanks to Klaus-Uwe Mitterer https://github.com/kumitterer)
+- hotfix to REST API service port (thanks to Klaus-Uwe Mitterer aka "Kumi" https://github.com/kumitterer)
 
 ### 🚀 Improvements
 
