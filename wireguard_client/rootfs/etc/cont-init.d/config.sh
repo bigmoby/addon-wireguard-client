@@ -76,17 +76,13 @@ fi
 
 # Post Up & Down defaults
 # Check if custom post_up value
-if ! bashio::config.has_value 'interface.post_up'; then
-    bashio::exit.nok 'post_up command is required'
-else
+if bashio::config.has_value 'interface.post_up'; then
     post_up=$(bashio::config 'interface.post_up')
     echo "PostUp = ${post_up}" >> "${config}"
 fi
 
 # Check if custom post_down value
-if ! bashio::config.has_value 'interface.post_down'; then
-    bashio::exit.nok 'post_down command is required'
-else
+if bashio::config.has_value 'interface.post_down'; then
     post_down=$(bashio::config 'interface.post_down')
     echo "PostDown = ${post_down}" >> "${config}"
 fi
