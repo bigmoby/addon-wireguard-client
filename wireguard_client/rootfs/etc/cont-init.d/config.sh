@@ -50,17 +50,15 @@ else
 fi
 
 # Add all server DNS addresses to the configuration
-listDns=()
 if bashio::config.has_value "interface.dns"; then
+    listDns=()
     # Use allowed IP's defined by the user.
     for address in $(bashio::config "interface.dns"); do
         listDns+=("${address}")
     done
-else
-    bashio::exit.nok 'You need a dns configured'
+    dns=$(IFS=", "; echo "${listDns[*]}")
+    echo "DNS = ${dns}" >> "${config}"
 fi
-dns=$(IFS=", "; echo "${listDns[*]}")
-echo "DNS = ${dns}" >> "${config}"
 
 if [[ $(</proc/sys/net/ipv4/ip_forward) -eq 0 ]]; then
     bashio::log.warning
