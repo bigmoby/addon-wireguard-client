@@ -31,14 +31,8 @@
    ],
    "options":{
       "interface":{
-         "private_key": "password?",
-         "address": "10.6.0.2",
-         "dns":[
-            "8.8.8.8",
-            "8.8.4.4"
-         ],
-         "post_up": "iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE",
-         "post_down": "iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE"
+         "private_key": "private-key-here",
+         "address": "10.6.0.2"
       },
       "peers":[{
          "public_key": "",
@@ -53,10 +47,10 @@
          "private_key": "password?",
          "address": "str",
          "dns":[
-            "str"
+            "str?"
          ],
-         "post_up": "str",
-         "post_down": "str"
+         "post_up": "str?",
+         "post_down": "str?"
       },
       "peers": [{
          "public_key":"str?",
@@ -65,8 +59,8 @@
          "allowed_ips":[
             "str"
          ],
-         "persistent_keep_alive":"int"
-      }
+         "persistent_keep_alive":"int?"
+      }]
    },
    "image": "bigmoby/{arch}-addon-wireguard-client"
  }
