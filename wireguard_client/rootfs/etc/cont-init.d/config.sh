@@ -91,67 +91,88 @@ if ! bashio::fs.directory_exists '/var/lib/wireguard'; then
         || bashio::exit.nok "Could not create status API storage folder"
 fi
 
-######################
-# Peer configuration #
-######################
-# Check if public key value and if true get the peer public key
-peer_public_key=""
-if ! bashio::config.has_value 'peer.public_key'; then
-    bashio::exit.nok 'You need a public_key configured for the peer'
-else
-    peer_public_key=$(bashio::config 'peer.public_key')
-fi
+#######################
+# Peers configuration #
+#######################
 
-# Check if pre_shared key value and if true get the peer pre_shared key
-pre_shared_key=""
-if  bashio::config.has_value 'peer.pre_shared_key'; then
-    pre_shared_key=$(bashio::config 'peer.pre_shared_key')
-fi
+function peer::has_value() {
+    local peer_value="$1"
+    local key="$2"
+    local value
 
-# Check if endpoint value and if true get the peer endpoint
-endpoint=""
-if ! bashio::config.has_value 'peer.endpoint'; then
-    bashio::exit.nok 'You need a endpoint configured for the peer'
-else
-    endpoint=$(bashio::config 'peer.endpoint')
-fi
+    value="$(bashio::jq "${peer_value}" "$key")"
 
-# Check if persistent_keep_alive value and if true get the peer persistent_keep_alive
-keep_alive=""
-if ! bashio::config.has_value 'peer.persistent_keep_alive'; then
-    bashio::exit.nok 'You need a persistent_keep_alive configured for the peer'
-else
-    keep_alive=$(bashio::config 'peer.persistent_keep_alive')
-fi
-
-# Determine allowed IPs for server side config, by default use
-# peer defined addresses.
-list=()
-if bashio::config.has_value "peer.allowed_ips"; then
-    # Use allowed IP's defined by the user.
-    for address in $(bashio::config "peer.allowed_ips"); do
-        [[ "${address}" == *"/"* ]] || address="${address}/32"
-        list+=("${address}")
-    done
-else
-    bashio::exit.nok 'You need a allowed_ips configured for the peer'
-fi
-
-allowed_ips=$(IFS=", "; echo "${list[*]}")
-
-# Start writing peer information in client config
-{
-    echo ""
-    echo "[Peer]"
-    echo "PublicKey = ${peer_public_key}"
-    if [ ! $pre_shared_key == "" ]
-    then
-        echo "PreSharedKey = ${pre_shared_key}"
+    if [[ "$value" == "null" ]]; then
+        return "${__BASHIO_EXIT_NOK}"
+    else
+        return "${__BASHIO_EXIT_OK}"
     fi
-    echo "Endpoint = ${endpoint}"
-    echo "AllowedIPs = ${allowed_ips}"
-    echo "PersistentKeepalive = ${keep_alive}"
-    echo ""
-} >> "${config}"
+}
+
+if ! bashio::config.has_value 'peers'; then
+    bashio::exit.nok 'Missing required list: peers'
+fi
+
+for peer in $(bashio::config "peers"); do
+    # Check if public key value and if true get the peer public key
+    peer_public_key=""
+    if ! peer::has_value "$peer" '.public_key'; then
+        bashio::exit.nok 'You need a public_key configured for the peer'
+    else
+        peer_public_key=$(bashio::jq "${peer}" '.public_key')
+    fi
+
+    # Check if pre_shared key value and if true get the peer pre_shared key
+    pre_shared_key=""
+    if peer::has_value "$peer" '.pre_shared_key'; then
+        pre_shared_key=$(bashio::jq "${peer}" '.pre_shared_key')
+    fi
+
+    # Check if endpoint value and if true get the peer endpoint
+    endpoint=""
+    if ! peer::has_value "$peer" '.endpoint'; then
+        bashio::exit.nok 'You need a endpoint configured for the peer'
+    else
+        endpoint=$(bashio::jq "${peer}" '.endpoint')
+    fi
+
+    # Check if persistent_keep_alive value and if true get the peer persistent_keep_alive
+    keep_alive=""
+    if peer::has_value "$peer" '.persistent_keep_alive'; then
+        keep_alive=$(bashio::jq "${peer}" '.persistent_keep_alive')
+    fi
+
+    # Determine allowed IPs for server side config, by default use
+    # peer defined addresses.
+    list=()
+    if peer::has_value "$peer" ".allowed_ips"; then
+        # Use allowed IP's defined by the user.
+        for address in $(bashio::jq "${peer}" '.allowed_ips[]'); do
+            [[ "${address}" == *"/"* ]] || address="${address}/32"
+            list+=("${address}")
+        done
+    else
+        bashio::exit.nok 'You need a allowed_ips configured for the peer'
+    fi
+
+    allowed_ips=$(IFS=", "; echo "${list[*]}")
+
+    # Start writing peer information in client config
+    {
+        echo ""
+        echo "[Peer]"
+        echo "PublicKey = ${peer_public_key}"
+        if [ ! $pre_shared_key == "" ]; then
+            echo "PreSharedKey = ${pre_shared_key}"
+        fi
+        echo "Endpoint = ${endpoint}"
+        echo "AllowedIPs = ${allowed_ips}"
+        if [ ! $keep_alive == "" ]; then
+            echo "PersistentKeepalive = ${keep_alive}"
+        fi
+        echo ""
+    } >> "${config}"
+
+done
 
 bashio::log.info "Ended to write Wireguard configuration into: [${config}]"
