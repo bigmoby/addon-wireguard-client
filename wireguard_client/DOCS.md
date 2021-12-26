@@ -56,13 +56,13 @@ interface:
     - 8.8.4.4
   post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
   post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
-peer:
-  public_key: your-public-key
-  pre_shared_key: your-preshared-key
-  endpoint: 'xxxxxxxxxxxxxxx.duckdns.org:51820'
-  allowed_ips:
-    - 10.6.0.0/24
-  persistent_keep_alive: 25
+peers:
+  - public_key: your-public-key
+    pre_shared_key: your-preshared-key
+    endpoint: 'xxxxxxxxxxxxxxx.duckdns.org:51820'
+    allowed_ips:
+      - 10.6.0.0/24
+    persistent_keep_alive: 25
 ```
 
 1. Save the configuration.

@@ -1,3 +1,54 @@
+## What’s changed in Wireguard Client Add-on v0.1.9
+### 💣 BREAKING CHANGES
+
+- new peers section in order to configure several peer connection (thanks to Stefan Berggren aka "nsg" https://github.com/nsg for suggest me this feature and give me some hints with his PR)
+
+```yaml
+interface:
+  private_key: test_key
+  address: 10.6.0.2
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
+  post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
+peer:
+  public_key: test_key
+  pre_shared_key: test_key
+  endpoint: xxxxxxxxxxxxxxx.duckdns.org:51820
+  allowed_ips:
+    - 10.6.0.0/24
+  persistent_keep_alive: 25
+```
+
+should be re-configured in 
+
+```yaml
+interface:
+  private_key: test_key
+  address: 10.6.0.2
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+  post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
+  post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
+peers:
+  - public_key: test_key
+    pre_shared_key: test_key
+    endpoint: xxxxxxxxxxxxxxx.duckdns.org:51820
+    allowed_ips:
+      - 10.6.0.0/24
+    persistent_keep_alive: '25'
+  - public_key: test_key
+    pre_shared_key: test_key
+    endpoint: yyyyyyyyyyyyyyy.duckdns.org:51820
+    allowed_ips:
+      - 10.6.0.1/24
+    persistent_keep_alive: '26'
+```
+
+ - `dns`,`post_up`,`post_down` have become optional params
+
 ## What’s changed in Wireguard Client Add-on v0.1.8 
 ### 🛠 Fixs
 
