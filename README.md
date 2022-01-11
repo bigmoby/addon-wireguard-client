@@ -1,8 +1,11 @@
 # Home Assistant Bigmoby Add-on: WireGuard Client
 
+[![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
-![Maintenance][maintenance-shield]
 [![License][license-shield]](LICENSE.md)
+
+![Maintenance][maintenance-shield]
+[![GitHub Activity][commits-shield]][commits]
 
 WireGuard: fast, modern, secure VPN tunnel.
 
