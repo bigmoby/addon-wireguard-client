@@ -111,7 +111,7 @@ SOFTWARE.
 [issue]: https://img.shields.io/github/issues/bigmoby/addon-wireguard-client.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/addon-wireguard-client.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2022.svg
-[project-stage-shield]: https://img.shields.io/badge/project%20stage-experimental-yellow.svg
+[project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/bigmoby/addon-wireguard-client.svg
 [repository]: https://github.com/bigmoby/hassio-repository-addon
