@@ -117,5 +117,6 @@ SOFTWARE.
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/bigmoby/addon-wireguard-client.svg
+[releases]: https://github.com/bigmoby/addon-wireguard-client/releases
 [repository]: https://github.com/bigmoby/hassio-repository-addon
 [wireguard]: https://www.wireguard.com
