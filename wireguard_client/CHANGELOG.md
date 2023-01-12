@@ -1,3 +1,9 @@
+## What’s changed in Wireguard Client Add-on v0.2.1
+## 🚀 Enhancements
+
+- Upgrade add-on base image to 12.0.0
+- Readme fix
+
 ## What’s changed in Wireguard Client Add-on v0.2.0
 ## 🚀 Enhancements
 

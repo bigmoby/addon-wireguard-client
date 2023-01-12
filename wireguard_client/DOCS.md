@@ -65,6 +65,8 @@ peers:
     persistent_keep_alive: 25
 ```
 
+Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
+
 1. Save the configuration.
 1. Start the "WireGuard" add-on
 
@@ -99,7 +101,7 @@ This is a fork of Wireguard Add-on
 
 MIT License
 
-Copyright (c) 2020-2021 Fabio Mauro
+Copyright (c) 2020-2023 Fabio Mauro
 
 Copyright (c) 2019-2020 Franck Nijhof
 
