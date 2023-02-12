@@ -1,6 +1,6 @@
 ---
 name: WireGuard Client
-version: 0.2.0
+version: 0.2.1
 slug: wireguard_client
 description: Fast, modern, secure Wireguard tunnel (client)
 url: https://github.com/bigmoby/addon-wireguard-client
@@ -29,8 +29,9 @@ options:
     private_key: ""
     address: 10.6.0.2
     dns: [ 8.8.8.8, 8.8.4.4]
-    post_up: "iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE"
-    post_down: "iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE"
+    post_up: "iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE; iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"
+    post_down: "iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE; iptables -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"
+    mtu: 1420
   peers:
     - public_key: ""
       pre_shared_key: ""
@@ -46,6 +47,7 @@ schema:
       - str?
     post_up: str?
     post_down: str?
+    mtu: int
   peers:
     - public_key: str?
       pre_shared_key: str?

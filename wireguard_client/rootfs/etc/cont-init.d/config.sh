@@ -14,6 +14,7 @@ declare keep_alive
 declare peer_public_key
 declare post_down
 declare post_up
+declare mtu
 declare pre_shared_key
 
 if ! bashio::fs.directory_exists '/ssl/wireguard'; then
@@ -45,7 +46,7 @@ if ! bashio::config.has_value 'interface.address'; then
     bashio::exit.nok 'You need a address configured for the interface client'
 else
     address=$(bashio::config 'interface.address')
-    [[ "${address}" == *"/"* ]] || address="${address}/24"   
+    [[ "${address}" == *"/"* ]] || address="${address}/24"
    echo "Address = ${address}" >> "${config}"
 fi
 
@@ -85,6 +86,12 @@ if bashio::config.has_value 'interface.post_down'; then
     echo "PostDown = ${post_down}" >> "${config}"
 fi
 
+# Check if custom mtu value
+if bashio::config.has_value 'interface.mtu'; then
+    mtu=$(bashio::config 'interface.mtu')
+    echo "MTU = ${mtu}" >> "${config}"
+fi
+
 # Status API Storage
 if ! bashio::fs.directory_exists '/var/lib/wireguard'; then
     mkdir -p /var/lib/wireguard \
@@ -100,7 +107,7 @@ fi
 ######################
 # Fetch all the peers
 for peer in $(bashio::config 'peers|keys'); do
-    
+
     # Check if public key value and if true get the peer public key
     peer_public_key=$(bashio::config "peers[${peer}].public_key")
 
