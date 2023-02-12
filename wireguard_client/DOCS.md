@@ -56,6 +56,7 @@ interface:
     - 8.8.4.4
   post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
   post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
+  mtu: 1420
 peers:
   - public_key: your-public-key
     pre_shared_key: your-preshared-key
