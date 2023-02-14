@@ -54,8 +54,8 @@ interface:
   dns:
     - 8.8.8.8
     - 8.8.4.4
-  post_up: iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
-  post_down: iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
+  post_up: "iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE; iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"
+  post_down: "iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE; iptables -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"
   mtu: 1420
 peers:
   - public_key: your-public-key
