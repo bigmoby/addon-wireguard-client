@@ -27,12 +27,12 @@ while true; do
             transfer_tx="${line[7]}"
 
             peer=$(bashio::var.json \
-                    'endpoint' "^${endpoint}" \
-                    'latest_handshake' "^${latest_handshake}" \
+                    'endpoint' "${endpoint}" \
+                    'latest_handshake' "${latest_handshake}" \
                     'transfer_rx' "^${transfer_rx}" \
                     'transfer_tx' "^${transfer_tx}")
 
-            peers+=("peer_${count}" "${peer}")
+            peers+=("peer_${count}" "^${peer}")
             (( count++ ))
         fi
     done <<< "$(wg show all dump)"
