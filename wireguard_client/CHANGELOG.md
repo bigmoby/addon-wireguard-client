@@ -1,3 +1,8 @@
+## What’s changed in Wireguard Client Add-on v0.2.2
+### 🛠 Fixs
+
+- Fixed json formatting for api (thanks to @olpal )
+
 ## What’s changed in Wireguard Client Add-on v0.2.1
 ## 🚀 Enhancements
 
