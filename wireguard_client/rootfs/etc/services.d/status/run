@@ -5,4 +5,6 @@
 # ==============================================================================
 sleep 30
 bashio::log.info "Requesting current status from WireGuard Client..."
-exec wg show
+if [[ "${__BASHIO_LOG_LEVEL}" -ge "${__BASHIO_LOG_LEVEL_INFO}" ]]; then
+    exec wg show
+fi
