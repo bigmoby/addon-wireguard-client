@@ -42,6 +42,19 @@ https://github.com/bigmoby/hassio-repository-addon
 Update migration process from version ___0.0.3-SNAPSHOT___ to version ___0.0.4-SNAPSHOT___ fails because of new Docker Hub pre-build support.
 __SO YOU MUST REMOVE AND INSTALL THE NEW ADD-ON VERSION__ ___MANUALLY.___
 
+## Known issues
+
+- **error setting key 'net.ipv4.conf.all.src_valid_mark'**
+
+This add-on is not compatible with a catch-all value for allowed_ips, like 0.0.0.0/0. If you encounter this error
+
+```
+  [#] sysctl -q net.ipv4.conf.all.src_valid_mark=1
+  sysctl: error setting key 'net.ipv4.conf.all.src_valid_mark': Read-only file system
+```
+
+it's because you are trying to give access from every ip in the planet. Simply use single ips or ip classes that need to be connected. If you don't own a static ip address you can consider a VPN.
+
 ## Contributing
 
 This is an active open-source project. We are always open to people who want to
