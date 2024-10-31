@@ -1,0 +1,19 @@
+name: "Test"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Test build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Test build
+        uses: home-assistant/builder@2024.08.2
+        with:
+          args: |
+            --test \
+            --all \
+            --target addon-wireguard_client \
+            --docker-hub bigmoby
