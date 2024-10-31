@@ -31,7 +31,7 @@ in the industry.
 
 * __New repository url__
 
-From version ___0.1.0___ will be dismissed the current repository and this will be the new repository url: 
+From version ___0.1.0___ will be dismissed the current repository and this will be the new repository url:
 
 ```text
 https://github.com/bigmoby/hassio-repository-addon
@@ -126,7 +126,7 @@ SOFTWARE.
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [issue]: https://img.shields.io/github/issues/bigmoby/addon-wireguard-client.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/addon-wireguard-client.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2023.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2024.svg
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/bigmoby/addon-wireguard-client.svg

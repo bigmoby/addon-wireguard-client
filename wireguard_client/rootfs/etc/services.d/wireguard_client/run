@@ -5,7 +5,7 @@
 # ==============================================================================
 declare interface
 
-s6-svc -O /var/run/s6/services/wireguard_client
+s6-svc -O /run/service/wireguard_client
 
 bashio::log.info "Starting WireGuard Client..."
 

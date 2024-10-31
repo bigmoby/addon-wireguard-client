@@ -1,15 +1,24 @@
+## What’s changed in Wireguard Client Add-on v0.2.3
+
+### 🛠 Fixs
+
+- Bump wireguard-tools to 1.0.20210914-r4
+
 ## What’s changed in Wireguard Client Add-on v0.2.2
+
 ### 🛠 Fixs
 
 - Fixed json formatting for api (thanks to @olpal )
 
 ## What’s changed in Wireguard Client Add-on v0.2.1
+
 ## 🚀 Enhancements
 
 - Add MTU configuration param
 - Readme fix
 
 ## What’s changed in Wireguard Client Add-on v0.2.0
+
 ## 🚀 Enhancements
 
 - Migrate JSON config to YAML
@@ -20,6 +29,7 @@
 - Upgrade wireguard-tools to 1.0.20210914-r0
 
 ## What’s changed in Wireguard Client Add-on v0.1.9
+
 ### 💣 BREAKING CHANGES
 
 - new peers section in order to configure several peer connection (thanks to Stefan Berggren aka "nsg" https://github.com/nsg for suggest me this feature and give me some hints with his PR)
@@ -42,7 +52,7 @@ peer:
   persistent_keep_alive: 25
 ```
 
-should be re-configured in 
+should be re-configured in
 
 ```yaml
 interface:
@@ -59,18 +69,19 @@ peers:
     endpoint: xxxxxxxxxxxxxxx.duckdns.org:51820
     allowed_ips:
       - 10.6.0.0/24
-    persistent_keep_alive: '25'
+    persistent_keep_alive: "25"
   - public_key: test_key
     pre_shared_key: test_key
     endpoint: yyyyyyyyyyyyyyy.duckdns.org:51820
     allowed_ips:
       - 10.6.0.1/24
-    persistent_keep_alive: '26'
+    persistent_keep_alive: "26"
 ```
 
- - `dns`,`post_up`,`post_down` have become optional params
+- `dns`,`post_up`,`post_down` have become optional params
 
-## What’s changed in Wireguard Client Add-on v0.1.8 
+## What’s changed in Wireguard Client Add-on v0.1.8
+
 ### 🛠 Fixs
 
 - hotfix to REST API service port (thanks to Klaus-Uwe Mitterer aka "Kumi" https://github.com/kumitterer)
@@ -81,12 +92,13 @@ peers:
 - Upgrade add-on base image to 10.0.1
 - Upgrade wireguard-tools version to 1.0.20210424-r0
 
-## What’s changed in Wireguard Client Add-on v0.1.7 
+## What’s changed in Wireguard Client Add-on v0.1.7
+
 ### 🛠 Fixs
 
 - hotfix to REST API service
 
-## What’s changed in Wireguard Client Add-on v0.1.6 
+## What’s changed in Wireguard Client Add-on v0.1.6
 
 ### 🚀 Improvements
 
