@@ -17,14 +17,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish
-        uses: home-assistant/builder@master
+      - name: Home Assistant builder
+        uses: home-assistant/builder@2024.08.2
         with:
           args: |
             --all \
             --target wireguard_client \
             --docker-hub bigmoby \
-            -i wireguard_client \ 
-            -b main \
+            --image wireguard_client \ 
+            --branch main \
             --addon \
             --no-cache
