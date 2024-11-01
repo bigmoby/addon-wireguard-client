@@ -26,4 +26,5 @@ jobs:
             --all \
             --docker-hub bigmoby \
             --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
-            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} 
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} \
+            --machine ALL
