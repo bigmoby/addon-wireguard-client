@@ -22,9 +22,7 @@ jobs:
             --repository https://github.com/bigmoby/addon-wireguard-client \
             --target wireguard_client \
             --branch main \
-            --image wireguard_client \
             --all \
             --docker-hub bigmoby \
             --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
-            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} \
-            --machine ALL
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
