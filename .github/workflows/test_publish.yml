@@ -15,5 +15,5 @@ jobs:
           args: |
             --test \
             --all \
-            --target addon-wireguard_client \
+            --target wireguard_client \
             --docker-hub bigmoby
