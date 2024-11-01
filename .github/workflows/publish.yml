@@ -22,8 +22,4 @@ jobs:
             --test \
             --all \
             --target wireguard_client \
-            --docker-hub bigmoby \
-            --image wireguard_client \ 
-            --branch main \
-            --addon \
-            --no-cache
+            --docker-hub bigmoby
