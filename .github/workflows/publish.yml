@@ -21,6 +21,7 @@ jobs:
         uses: home-assistant/builder@2024.08.2
         with:
           args: |
+            --test \
             --all \
             --target wireguard_client \
             --docker-hub bigmoby \
