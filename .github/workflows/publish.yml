@@ -19,7 +19,11 @@ jobs:
         uses: home-assistant/builder@2024.08.2
         with:
           args: |
-            --test \
-            --all \
+            --repository https://github.com/bigmoby/addon-wireguard-client \
             --target wireguard_client \
-            --docker-hub bigmoby
+            --branch main \
+            --image wireguard_client \
+            --all \
+            --docker-hub bigmoby \
+            --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} 
