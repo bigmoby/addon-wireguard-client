@@ -53,7 +53,7 @@ This add-on is not compatible with a catch-all value for allowed_ips, like 0.0.0
   sysctl: error setting key 'net.ipv4.conf.all.src_valid_mark': Read-only file system
 ```
 
-it's because you are trying to give access from every ip in the planet. Simply use single ips or ip classes that need to be connected. If you don't own a static ip address you can consider a VPN.
+it's because you are trying to create routes to/from every possible IP through the WireGuard interface. Simply use single ips or ip classes that need to be connected. If you don't own a static ip address you can consider a VPN.
 
 ## Contributing
 
