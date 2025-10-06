@@ -29,18 +29,18 @@ in the industry.
 
 ## Breaking Changes
 
-* __New repository url__
+- **New repository url**
 
-From version ___0.1.0___ will be dismissed the current repository and this will be the new repository url:
+From version **_0.1.0_** will be dismissed the current repository and this will be the new repository url:
 
 ```text
 https://github.com/bigmoby/hassio-repository-addon
 ```
 
-* __Docker Hub pre-build add-on__
+- **Docker Hub pre-build add-on**
 
-Update migration process from version ___0.0.3-SNAPSHOT___ to version ___0.0.4-SNAPSHOT___ fails because of new Docker Hub pre-build support.
-__SO YOU MUST REMOVE AND INSTALL THE NEW ADD-ON VERSION__ ___MANUALLY.___
+Update migration process from version **_0.0.3-SNAPSHOT_** to version **_0.0.4-SNAPSHOT_** fails because of new Docker Hub pre-build support.
+**SO YOU MUST REMOVE AND INSTALL THE NEW ADD-ON VERSION** **_MANUALLY._**
 
 ## Known issues
 
@@ -88,7 +88,7 @@ check [the contributor's page][contributors].
 
 MIT License
 
-Copyright (c) 2020-2024 Fabio Mauro
+Copyright (c) 2020-2025 Fabio Mauro
 
 Copyright (c) 2019-2020 Franck Nijhof
 
@@ -110,7 +110,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
 [original_project]: https://github.com/hassio-addons/addon-wireguard
 [contributors]: https://github.com/bigmoby/addon-wireguard-client/graphs/contributors
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
@@ -126,7 +125,7 @@ SOFTWARE.
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [issue]: https://img.shields.io/github/issues/bigmoby/addon-wireguard-client.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/addon-wireguard-client.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2024.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/bigmoby/addon-wireguard-client.svg

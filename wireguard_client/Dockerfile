@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:16.0.1
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:18.1.4
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -9,9 +9,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3003
 RUN \
     apk add --no-cache \
-    openresolv=3.13.2-r0 \
-    iptables=1.8.10-r3 \
-    wireguard-tools=1.0.20210914-r4\
+    openresolv=3.14.1-r0 \
+    iptables=1.8.11-r1 \
+    wireguard-tools=1.0.20250521-r0 \
     \
     && ln -sf /sbin/xtables-nft-multi /sbin/ip6tables \
     && ln -sf /sbin/xtables-nft-multi /sbin/iptables

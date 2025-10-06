@@ -45,7 +45,7 @@ Follow the following steps for installation & a quick start:
 
 1. Search for the "WireGuard Client" add-on in the Supervisor add-on store
    and install it.
-1. use the following configuration as example: 
+1. use the following configuration as example:
 
 ```yaml
 interface:
@@ -96,13 +96,13 @@ If you have, sharing would be appreciated!
 
 The original setup of this repository is by [Fabio Mauro][bigmoby].
 
-This is a fork of Wireguard Add-on 
+This is a fork of Wireguard Add-on
 
 ## License
 
 MIT License
 
-Copyright (c) 2020-2024 Fabio Mauro
+Copyright (c) 2020-2025 Fabio Mauro
 
 Copyright (c) 2019-2020 Franck Nijhof
 
