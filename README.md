@@ -114,15 +114,12 @@ SOFTWARE.
 [contributors]: https://github.com/bigmoby/addon-wireguard-client/graphs/contributors
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
-[armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
-[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [commits-shield]: https://img.shields.io/github/commit-activity/y/hassio-addons/addon-wireguard.svg
 [commits]: https://github.com/bigmoby/addon-wireguard-client/commits/main
 [discord-ha]: https://discord.gg/c5DvZ4e
 [discord-shield]: https://img.shields.io/discord/478094546522079232.svg
 [discord]: https://discord.me/hassioaddons
 [docs]: https://github.com/bigmoby/addon-wireguard-client/blob/master/wireguard/DOCS.md
-[i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [issue]: https://img.shields.io/github/issues/bigmoby/addon-wireguard-client.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/addon-wireguard-client.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
