@@ -1,0 +1,79 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Home Assistant Third Party Add-on: WireGuard Client
+# Provides services API for WireGuard client actions.
+# ==============================================================================
+declare response
+declare action
+
+PORT=$(bashio::addon.port "51822/tcp")
+if [[ $PORT -eq 0 ]]; then exit; fi
+
+while true; do
+    # Listen for HTTP requests
+    request=$(nc -l -p $PORT)
+
+    # Extract action from request (simplified parsing)
+    if echo "$request" | grep -q "GET /reconnect"; then
+        action="reconnect"
+    elif echo "$request" | grep -q "GET /restart"; then
+        action="restart"
+    elif echo "$request" | grep -q "GET /test"; then
+        action="test"
+    else
+        action="unknown"
+    fi
+
+    # Execute action and build response
+    case "$action" in
+        "reconnect")
+            bashio::log.info "Reconnecting WireGuard..."
+            if wg-quick down wg0 2>/dev/null && sleep 2 && wg-quick up wg0 2>/dev/null; then
+                response='{"action":"reconnect","result":"success","message":"WireGuard reconnected successfully"}'
+            else
+                response='{"action":"reconnect","result":"error","message":"Failed to reconnect WireGuard"}'
+            fi
+            ;;
+        "restart")
+            bashio::log.info "Restarting WireGuard..."
+            if wg-quick down wg0 2>/dev/null && sleep 3 && wg-quick up wg0 2>/dev/null; then
+                response='{"action":"restart","result":"success","message":"WireGuard restarted successfully"}'
+            else
+                response='{"action":"restart","result":"error","message":"Failed to restart WireGuard"}'
+            fi
+            ;;
+        "test")
+            bashio::log.info "Testing WireGuard connection..."
+            # Check if WireGuard interface exists and is configured
+            if ! ip link show wg0 >/dev/null 2>&1; then
+                response='{"action":"test","result":"error","message":"WireGuard interface wg0 not found"}'
+            elif ! wg show wg0 >/dev/null 2>&1; then
+                response='{"action":"test","result":"error","message":"WireGuard interface wg0 not configured"}'
+            else
+                # Get latest handshake time and test connectivity
+                latest_handshake=$(wg show wg0 dump | awk '{print $5}' | head -1)
+                current_time=$(date +%s)
+
+                # Check if handshake is recent (within last 3 minutes)
+                if [[ "$latest_handshake" != "0" ]] && [[ $((current_time - latest_handshake)) -lt 180 ]]; then
+                    # Additional connectivity test: ping VPN server if possible
+                    vpn_server_ip=$(wg show wg0 allowed-ips | head -1 | awk '{print $2}' | cut -d'/' -f1)
+                    if [[ -n "$vpn_server_ip" ]] && ping -c 1 -W 2 "$vpn_server_ip" >/dev/null 2>&1; then
+                        response='{"action":"test","result":"success","message":"WireGuard active with recent handshake and server reachable"}'
+                    else
+                        response='{"action":"test","result":"success","message":"WireGuard active with recent handshake"}'
+                    fi
+                else
+                    response='{"action":"test","result":"error","message":"WireGuard interface exists but no recent handshake"}'
+                fi
+            fi
+            ;;
+        *)
+            response='{"action":"unknown","result":"error","message":"Unknown action"}'
+            ;;
+    esac
+
+    # Send HTTP response
+    echo -e "HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n${response}" \
+        | nc -l -p $PORT > /dev/null
+done

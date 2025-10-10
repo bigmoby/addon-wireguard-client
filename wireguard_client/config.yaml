@@ -1,6 +1,6 @@
 ---
 name: WireGuard Client
-version: 0.2.5
+version: 0.2.6
 slug: wireguard_client
 description: Fast, modern, secure Wireguard tunnel (client)
 url: https://github.com/bigmoby/addon-wireguard-client
@@ -11,9 +11,11 @@ apparmor: true
 host_network: true
 init: false
 ports:
-  80/tcp: 80
+  51821/tcp: 51821
+  51822/tcp: 51822
 ports_description:
-  80/tcp: WireGuard client status API
+  51821/tcp: WireGuard client status API (sensors)
+  51822/tcp: WireGuard client services API (actions)
 hassio_api: true
 privileged:
   - NET_ADMIN
