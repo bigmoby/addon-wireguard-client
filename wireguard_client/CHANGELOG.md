@@ -1,3 +1,10 @@
+## What's changed in Wireguard Client Add-on v0.2.7
+
+### 🚀 Enhancements
+
+- **Replaced netcat with socat**: Improved HTTP server with persistent connections and better performance
+- **Unified API**: Combined status and services into single endpoint on port 51821
+
 ## What's changed in Wireguard Client Add-on v0.2.6
 
 ### 🛠 Fixes
