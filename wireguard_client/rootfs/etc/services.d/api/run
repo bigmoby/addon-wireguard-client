@@ -172,7 +172,7 @@ case "$action" in
     [[ "${latest_handshake}" =~ ^[0-9]+$ ]] || latest_handshake=0
     current_time="$(date +%s)"
 
-    if (( latest_handshake != 0 )) && (( current_time - latest_handshake < 180 )); then
+    if (( latest_handshake != 0 )) && (( current_time - latest_handshake < 300 )); then
       vpn_server_ip="$(wg show wg0 allowed-ips | awk 'NR==1{print $2}' | cut -d'/' -f1)"
       if [[ -n "${vpn_server_ip:-}" ]] && ping -c 1 -W 2 "${vpn_server_ip}" >/dev/null 2>&1; then
         send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake and server reachable"}'
