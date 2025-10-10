@@ -1,10 +1,10 @@
-# WireGuard Client Addon - Enhanced API
+# WireGuard Client Addon - Unified API
 
-This addon now provides an enhanced API with comprehensive sensor data and service endpoints.
+This addon provides a unified API with comprehensive sensor data and service endpoints on a single port (51821).
 
 ## 📊 Status API Endpoint
 
-### **GET /** (Port 80)
+### **GET /** (Port 51821)
 
 Returns comprehensive WireGuard status information.
 
@@ -50,7 +50,7 @@ Returns comprehensive WireGuard status information.
   - **transfer_tx**: Bytes sent to this peer
   - **uptime_seconds**: Connection uptime in seconds
 
-## 🔧 Services API Endpoints
+## 🔧 Service Endpoints
 
 ### **GET /reconnect**
 
@@ -166,15 +166,15 @@ Add to your `configuration.yaml`:
 ```yaml
 rest_command:
   wireguard_reconnect:
-    url: "http://local-wireguard-client:51822/reconnect"
+    url: "http://local-wireguard-client:51821/reconnect"
     method: GET
 
   wireguard_restart:
-    url: "http://local-wireguard-client:51822/restart"
+    url: "http://local-wireguard-client:51821/restart"
     method: GET
 
   wireguard_test:
-    url: "http://local-wireguard-client:51822/test"
+    url: "http://local-wireguard-client:51821/test"
     method: GET
 ```
 
@@ -248,13 +248,13 @@ entities:
 curl http://local-wireguard-client:51821
 
 # Reconnect VPN
-curl http://local-wireguard-client:51822/reconnect
+curl http://local-wireguard-client:51821/reconnect
 
 # Restart WireGuard
-curl http://local-wireguard-client:51822/restart
+curl http://local-wireguard-client:51821/restart
 
 # Test WireGuard connection (comprehensive)
-curl http://local-wireguard-client:51822/test
+curl http://local-wireguard-client:51821/test
 ```
 
 ### **Using Home Assistant Developer Tools:**
@@ -265,9 +265,7 @@ curl http://local-wireguard-client:51822/test
 
 ## 📝 Notes
 
-- **API URLs**:
-  - Status API: `http://local-wireguard-client:51821` (port 51821)
-  - Services API: `http://local-wireguard-client:51822` (port 51822)
+- **API URL**: `http://local-wireguard-client:51821` (port 51821)
 - **Replace URL**: Replace `local-wireguard-client` with your addon hostname
 - **Development vs Production**: In development environments, you may need to use `localhost` instead of the addon hostname
 - **Update Frequency**: Status updates every few seconds

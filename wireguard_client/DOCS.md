@@ -71,11 +71,11 @@ Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
 1. Save the configuration.
 1. Start the "WireGuard" add-on
 
-## WireGuard Client Enhanced API
+## WireGuard Client Unified API
 
-This add-on provides a comprehensive API with two main endpoints:
+This add-on provides a unified API on port 51821 with comprehensive functionality:
 
-### 📊 Status API (Port 51821)
+### 📊 Status Endpoint (GET /)
 
 Returns detailed WireGuard status information including:
 
@@ -84,7 +84,7 @@ Returns detailed WireGuard status information including:
 - Peer count and individual peer details
 - Uptime and handshake information
 
-### 🔧 Services API (Port 51822)
+### 🔧 Service Endpoints
 
 Provides VPN control actions:
 
@@ -121,11 +121,11 @@ rest:
 ```yaml
 rest_command:
   wireguard_test:
-    url: "http://local-wireguard-client:51822/test"
+    url: "http://local-wireguard-client:51821/test"
     method: GET
 
   wireguard_reconnect:
-    url: "http://local-wireguard-client:51822/reconnect"
+    url: "http://local-wireguard-client:51821/reconnect"
     method: GET
 ```
 
