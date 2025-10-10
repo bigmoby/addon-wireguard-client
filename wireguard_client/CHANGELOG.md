@@ -1,11 +1,28 @@
+## What's changed in Wireguard Client Add-on v0.2.5
+
+### 🛠 Fixes
+
+- **Fixed "wg0 already exists" error**: Improved startup and shutdown scripts to handle existing WireGuard interfaces gracefully
+- **Enhanced error handling**: Added automatic cleanup of existing interfaces before starting new connections
+- **Fixed interface cleanup**: Better handling of stale WireGuard interfaces during addon restarts
+
+### 🚀 Enhancements
+
+- **Improved startup script**: Now detects and cleans up existing WireGuard interfaces automatically
+- **Enhanced shutdown script**: Better cleanup process with fallback manual interface removal
+- **Better logging**: More detailed logging for troubleshooting interface conflicts
+- **Robust interface management**: Automatic detection and cleanup of stale WireGuard interfaces
+
 ## What's changed in Wireguard Client Add-on v0.2.4
+
+### 🛠 Fixes
+
+- **Fixed wireguard-tools version conflict**: Updated from 1.0.20210914-r4 to 1.0.20250521-r0 to resolve package conflicts
+- **Fixed base image compatibility**: Updated from 16.3.4 to 18.1.4 for better Alpine Linux compatibility
 
 ### 💣 BREAKING CHANGES
 
 - **Removed support for deprecated architectures**: Following Home Assistant's deprecation notice, removed support for i386, armhf, and armv7 architectures. Only aarch64 and amd64 are now supported.
-
-### 🚀 Enhancements
-
 - Aligned with Home Assistant's official architecture support policy
 - Simplified build process by removing legacy architecture support
 

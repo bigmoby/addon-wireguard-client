@@ -16,5 +16,35 @@ export WG_I_PREFER_BUGGY_USERSPACE_TO_POLISHED_KMOD=1
 # Get the interface
 interface="wg0"
 
+# Check if interface already exists and clean it up
+if ip link show "${interface}" >/dev/null 2>&1; then
+    bashio::log.warning "Interface ${interface} already exists, cleaning up..."
+
+    # Try to stop existing interface
+    if wg-quick down "${interface}" 2>/dev/null; then
+        bashio::log.info "Existing interface stopped successfully"
+    else
+        bashio::log.warning "Failed to stop existing interface, performing manual cleanup..."
+
+        # Manual cleanup
+        ip route del dev "${interface}" 2>/dev/null || true
+        ip addr flush dev "${interface}" 2>/dev/null || true
+        ip link set "${interface}" down 2>/dev/null || true
+        ip link delete "${interface}" 2>/dev/null || true
+    fi
+
+    # Wait a moment for cleanup to complete
+    sleep 2
+
+    # Verify interface is removed
+    if ip link show "${interface}" >/dev/null 2>&1; then
+        bashio::log.error "Failed to remove existing interface ${interface}"
+        bashio::exit.nok "Cannot start WireGuard: interface ${interface} already exists"
+    else
+        bashio::log.info "Interface ${interface} cleanup completed"
+    fi
+fi
+
 # Run the WireGuard
+bashio::log.info "Starting WireGuard interface ${interface}..."
 exec wg-quick up "${interface}"

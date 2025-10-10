@@ -1,6 +1,6 @@
 ---
 name: WireGuard Client
-version: 0.2.4
+version: 0.2.5
 slug: wireguard_client
 description: Fast, modern, secure Wireguard tunnel (client)
 url: https://github.com/bigmoby/addon-wireguard-client

@@ -1,14 +1,46 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
 # Home Assistant Community Add-on: WireGuard Client
-# Runs WireGuard
+# Stops WireGuard Client and cleans up interface
 # ==============================================================================
 declare interface
 
-bashio::log.info "Stop WireGuard Client container..."
+bashio::log.info "Stopping WireGuard Client container..."
 
 # Get the interface
 interface="wg0"
 
-# Run the WireGuard
-exec wg-quick down "${interface}"
+# Check if interface exists before trying to stop it
+if ip link show "${interface}" >/dev/null 2>&1; then
+    bashio::log.info "Interface ${interface} found, stopping WireGuard..."
+
+    # Try to stop with wg-quick first
+    if wg-quick down "${interface}" 2>/dev/null; then
+        bashio::log.info "WireGuard stopped successfully with wg-quick"
+    else
+        bashio::log.warning "wg-quick down failed, performing manual cleanup..."
+
+        # Manual cleanup if wg-quick fails
+        ip route del dev "${interface}" 2>/dev/null || true
+        ip addr flush dev "${interface}" 2>/dev/null || true
+        ip link set "${interface}" down 2>/dev/null || true
+        ip link delete "${interface}" 2>/dev/null || true
+
+        bashio::log.info "Manual cleanup completed"
+    fi
+
+    # Verify interface is removed
+    if ip link show "${interface}" >/dev/null 2>&1; then
+        bashio::log.warning "Interface ${interface} still exists, forcing removal..."
+        ip link delete "${interface}" 2>/dev/null || true
+    else
+        bashio::log.info "Interface ${interface} successfully removed"
+    fi
+else
+    bashio::log.info "Interface ${interface} not found, nothing to stop"
+fi
+
+# Clean up any remaining WireGuard processes
+pkill -f "wg-quick" 2>/dev/null || true
+
+bashio::log.info "WireGuard Client stop completed"
