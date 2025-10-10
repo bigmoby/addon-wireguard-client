@@ -197,7 +197,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-bashio::log.info "Starting WireGuard Unified API on port ${PORT} (socat)..."
+bashio::log.info "Starting WireGuard Unified API on port ${PORT}..."
 
 # -T 5: inactivity timeout; -t 5: connection timeout
 # fork: 1 processo per connessione; reuseaddr: restart veloci; keepalive: TCP keepalive
