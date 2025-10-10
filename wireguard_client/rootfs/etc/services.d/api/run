@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
 # Home Assistant Third Party Add-on: WireGuard Client
-# Provides status of WireGuard broker.
+# Provides comprehensive status of WireGuard client including sensors data.
 # ==============================================================================
 declare -a peers
 declare endpoint
@@ -11,13 +11,32 @@ declare line
 declare peer
 declare transfer_rx
 declare transfer_tx
+declare interface_status
+declare total_rx
+declare total_tx
+declare peer_count
+declare uptime_seconds
+declare current_time
 
-PORT=$(bashio::addon.port "80/tcp")
+PORT=$(bashio::addon.port "51821/tcp")
 if [[ $PORT -eq 0 ]]; then exit; fi
 
 while true; do
-    # Get information from wg
+    # Initialize counters
     peers=()
+    total_rx=0
+    total_tx=0
+    peer_count=0
+    current_time=$(date +%s)
+
+    # Check if WireGuard interface exists and is up
+    if ip link show wg0 >/dev/null 2>&1; then
+        interface_status="connected"
+    else
+        interface_status="disconnected"
+    fi
+
+    # Get information from wg
     declare count=1
     while IFS=$'\t' read -r -a line; do
         if [[ "${#line[@]}" -gt 6 ]]; then
@@ -26,22 +45,38 @@ while true; do
             transfer_rx="${line[6]}"
             transfer_tx="${line[7]}"
 
+            # Calculate uptime from latest handshake
+            if [[ "${line[5]}" != "0" ]]; then
+                uptime_seconds=$((current_time - line[5]))
+            else
+                uptime_seconds=0
+            fi
+
+            # Add to totals
+            total_rx=$((total_rx + transfer_rx))
+            total_tx=$((total_tx + transfer_tx))
+            peer_count=$((peer_count + 1))
+
             peer=$(bashio::var.json \
                     'endpoint' "${endpoint}" \
                     'latest_handshake' "${latest_handshake}" \
                     'transfer_rx' "^${transfer_rx}" \
-                    'transfer_tx' "^${transfer_tx}")
+                    'transfer_tx' "^${transfer_tx}" \
+                    'uptime_seconds' "^${uptime_seconds}")
 
             peers+=("peer_${count}" "^${peer}")
             (( count++ ))
         fi
     done <<< "$(wg show all dump)"
 
-    # Build final json content
-    json="{}"
-    if [[ "${#peers[@]}" -ne 0 ]]; then
-        json=$(bashio::var.json "${peers[@]}")
-    fi
+    # Build comprehensive JSON response
+    json=$(bashio::var.json \
+        'status' "${interface_status}" \
+        'total_traffic_rx' "^${total_rx}" \
+        'total_traffic_tx' "^${total_tx}" \
+        'peer_count' "^${peer_count}" \
+        'timestamp' "^${current_time}" \
+        'peers' "$(bashio::var.json "${peers[@]}")")
 
     echo -e "HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n${json}" \
         | nc -l -p $PORT > /dev/null
