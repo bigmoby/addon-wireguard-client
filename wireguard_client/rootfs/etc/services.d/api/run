@@ -1,83 +1,205 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
-# Home Assistant Third Party Add-on: WireGuard Client
-# Provides comprehensive status of WireGuard client including sensors data.
+# Home Assistant Third Party Add-on: WireGuard Client - Unified API (socat)
+# s6 service: single 'run' that spawns socat; per-connection handler generated inline.
+# Endpoints:
+#   GET /           -> status JSON (peers, totals, timestamp)
+#   GET /status     -> alias di /
+#   GET /reconnect  -> wg-quick down/up
+#   GET /restart    -> wg-quick down/up (wait 3s)
+#   GET /test       -> health check (handshake + optional ping)
 # ==============================================================================
-declare -a peers
-declare endpoint
-declare json
-declare latest_handshake
-declare line
-declare peer
-declare transfer_rx
-declare transfer_tx
-declare interface_status
-declare total_rx
-declare total_tx
-declare peer_count
-declare uptime_seconds
-declare current_time
 
-PORT=$(bashio::addon.port "51821/tcp")
-if [[ $PORT -eq 0 ]]; then exit; fi
+set -euo pipefail
 
-while true; do
-    # Initialize counters
-    peers=()
+PORT="$(bashio::addon.port "51821/tcp" || true)"
+if [[ -z "${PORT:-}" || "${PORT}" == "0" ]]; then
+    bashio::log.warning "WireGuard Unified API disabled (no port exposed)."
+    exit 0
+fi
+
+if ! command -v socat >/dev/null 2>&1; then
+    bashio::log.error "socat not found. Add it to your image (e.g., apk add --no-cache socat)."
+    exit 1
+fi
+
+WORKDIR="/run/wg-unified-api"
+mkdir -p "$WORKDIR"
+
+# --- Create per-connection handler (executed by socat via SYSTEM=) ---
+HANDLER="${WORKDIR}/handler.sh"
+cat > "$HANDLER" <<'EOF'
+#!/usr/bin/with-contenv bashio
+set -euo pipefail
+
+# === IMPORTANTISSIMO: separa la socket HTTP da QUALSIASI log ===
+# 1) Salva la socket (stdout all'avvio) su FD 3
+exec 3>&1
+# 2) Taglia TUTTO l'output del handler (stdout+stderr) per evitare byte prima delle header
+exec 1>/dev/null
+exec 2>/dev/null
+
+# Helper: invia risposta JSON su FD 3 (stessa connessione)
+send_json() {
+  # $1 = status line (es. "200 OK")
+  # $2 = payload JSON
+  local _status="${1}"
+  local _body="${2}"
+  printf 'HTTP/1.1 %s\r\n' "${_status}" >&3
+  printf 'Content-Type: application/json\r\n' >&3
+  printf 'Content-Length: %s\r\n' "${#_body}" >&3
+  printf 'Connection: close\r\n' >&3
+  printf '\r\n' >&3
+  printf '%s' "${_body}" >&3
+}
+
+# Leggi la request line (es. "GET /test HTTP/1.1")
+if ! IFS= read -r request_line; then
+  exit 0
+fi
+
+# Consuma header fino a riga vuota
+while IFS= read -r h; do
+  [[ -z "$h" || "$h" = $'\r' ]] && break
+done
+
+# Determina azione in base al path
+action="status"
+case "${request_line}" in
+  *"GET /reconnect"*) action="reconnect" ;;
+  *"GET /restart"*)   action="restart" ;;
+  *"GET /test"*)      action="test" ;;
+  *"GET /status"*)    action="status" ;;
+  *"GET / "*)         action="status" ;;
+  *)                  action="unknown" ;;
+esac
+
+case "$action" in
+  "status")
     total_rx=0
     total_tx=0
     peer_count=0
-    current_time=$(date +%s)
+    current_time="$(date +%s)"
+    peers_json="[]"
 
-    # Check if WireGuard interface exists and is up
     if ip link show wg0 >/dev/null 2>&1; then
-        interface_status="connected"
+      interface_status="connected"
     else
-        interface_status="disconnected"
+      interface_status="disconnected"
     fi
 
-    # Get information from wg
-    declare count=1
+    # wg show all dump: tab-separated
+    # iface  privkey  pubkey  endpoint  allowedips  latest_handshake  rx  tx  ...
+    count=0
     while IFS=$'\t' read -r -a line; do
-        if [[ "${#line[@]}" -gt 6 ]]; then
-            endpoint="${line[3]}"
-            latest_handshake="$(exec date -d @"${line[5]}" 2>/dev/null || date -r "${line[5]}")"
-            transfer_rx="${line[6]}"
-            transfer_tx="${line[7]}"
+      if [[ "${#line[@]}" -ge 8 ]]; then
+        endpoint="${line[3]}"
+        handshake_epoch="${line[5]}"
+        transfer_rx="${line[6]}"
+        transfer_tx="${line[7]}"
 
-            # Calculate uptime from latest handshake
-            if [[ "${line[5]}" != "0" ]]; then
-                uptime_seconds=$((current_time - line[5]))
-            else
-                uptime_seconds=0
-            fi
+        [[ "${transfer_rx}" =~ ^[0-9]+$ ]] || transfer_rx=0
+        [[ "${transfer_tx}" =~ ^[0-9]+$ ]] || transfer_tx=0
+        [[ "${handshake_epoch}" =~ ^[0-9]+$ ]] || handshake_epoch=0
 
-            # Add to totals
-            total_rx=$((total_rx + transfer_rx))
-            total_tx=$((total_tx + transfer_tx))
-            peer_count=$((peer_count + 1))
-
-            peer=$(bashio::var.json \
-                    'endpoint' "${endpoint}" \
-                    'latest_handshake' "${latest_handshake}" \
-                    'transfer_rx' "^${transfer_rx}" \
-                    'transfer_tx' "^${transfer_tx}" \
-                    'uptime_seconds' "^${uptime_seconds}")
-
-            peers+=("peer_${count}" "^${peer}")
-            (( count++ ))
+        if [[ "${handshake_epoch}" != "0" ]]; then
+          latest_handshake="$(date -u -d "@${handshake_epoch}" +'%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -r "${handshake_epoch}" +'%Y-%m-%dT%H:%M:%SZ')"
+          uptime_seconds=$(( current_time - handshake_epoch ))
+          (( uptime_seconds < 0 )) && uptime_seconds=0
+        else
+          latest_handshake=""
+          uptime_seconds=0
         fi
-    done <<< "$(wg show all dump)"
 
-    # Build comprehensive JSON response
-    json=$(bashio::var.json \
-        'status' "${interface_status}" \
-        'total_traffic_rx' "^${total_rx}" \
-        'total_traffic_tx' "^${total_tx}" \
-        'peer_count' "^${peer_count}" \
-        'timestamp' "^${current_time}" \
-        'peers' "$(bashio::var.json "${peers[@]}")")
+        total_rx=$(( total_rx + transfer_rx ))
+        total_tx=$(( total_tx + transfer_tx ))
+        peer_count=$(( peer_count + 1 ))
+        count=$(( count + 1 ))
 
-    echo -e "HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n${json}" \
-        | nc -l -p $PORT > /dev/null
-done
+        peer_obj="$(bashio::var.json \
+          'endpoint' "${endpoint}" \
+          'latest_handshake' "${latest_handshake}" \
+          'transfer_rx' "^${transfer_rx}" \
+          'transfer_tx' "^${transfer_tx}" \
+          'uptime_seconds' "^${uptime_seconds}")"
+
+        if [[ "${peers_json}" == "[]" ]]; then
+          peers_json="[${peer_obj}]"
+        else
+          peers_json="${peers_json%]}"', '"${peer_obj}"']'
+        fi
+      fi
+    done <<< "$(wg show all dump 2>/dev/null || true)"
+
+    json="$(bashio::var.json \
+      'status' "${interface_status}" \
+      'total_traffic_rx' "^${total_rx}" \
+      'total_traffic_tx' "^${total_tx}" \
+      'peer_count' "^${peer_count}" \
+      'timestamp' "^${current_time}" \
+      'peers' "${peers_json}")"
+
+    send_json "200 OK" "${json}"
+    ;;
+
+  "reconnect")
+    if wg-quick down wg0 2>/dev/null && sleep 2 && wg-quick up wg0 2>/dev/null; then
+      send_json "200 OK" '{"action":"reconnect","result":"success","message":"WireGuard reconnected successfully"}'
+    else
+      send_json "200 OK" '{"action":"reconnect","result":"error","message":"Failed to reconnect WireGuard"}'
+    fi
+    ;;
+
+  "restart")
+    if wg-quick down wg0 2>/dev/null && sleep 3 && wg-quick up wg0 2>/dev/null; then
+      send_json "200 OK" '{"action":"restart","result":"success","message":"WireGuard restarted successfully"}'
+    else
+      send_json "200 OK" '{"action":"restart","result":"error","message":"Failed to restart WireGuard"}'
+    fi
+    ;;
+
+  "test")
+    if ! ip link show wg0 >/dev/null 2>&1; then
+      send_json "200 OK" '{"action":"test","result":"error","message":"WireGuard interface wg0 not found"}'
+      exit 0
+    fi
+    if ! wg show wg0 >/dev/null 2>&1; then
+      send_json "200 OK" '{"action":"test","result":"error","message":"WireGuard interface wg0 not configured"}'
+      exit 0
+    fi
+
+    latest_handshake="$(wg show wg0 dump | awk 'NR==1{print $5}')"
+    [[ "${latest_handshake}" =~ ^[0-9]+$ ]] || latest_handshake=0
+    current_time="$(date +%s)"
+
+    if (( latest_handshake != 0 )) && (( current_time - latest_handshake < 180 )); then
+      vpn_server_ip="$(wg show wg0 allowed-ips | awk 'NR==1{print $2}' | cut -d'/' -f1)"
+      if [[ -n "${vpn_server_ip:-}" ]] && ping -c 1 -W 2 "${vpn_server_ip}" >/dev/null 2>&1; then
+        send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake and server reachable"}'
+      else
+        send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake"}'
+      fi
+    else
+      send_json "200 OK" '{"action":"test","result":"error","message":"WireGuard interface exists but no recent handshake"}'
+    fi
+    ;;
+
+  *)
+    send_json "404 Not Found" '{"error":"Not found"}'
+    ;;
+esac
+EOF
+chmod +x "$HANDLER"
+
+# Clean up on exit
+cleanup() {
+  rm -f "$HANDLER"
+}
+trap cleanup EXIT
+
+bashio::log.info "Starting WireGuard Unified API on port ${PORT} (socat)..."
+
+# -T 5: inactivity timeout; -t 5: connection timeout
+# fork: 1 processo per connessione; reuseaddr: restart veloci; keepalive: TCP keepalive
+# (per debug: aggiungi -d -d subito dopo 'socat')
+exec socat -T 5 -t 5 TCP-LISTEN:${PORT},fork,reuseaddr,keepalive SYSTEM:"${HANDLER}"

@@ -12,6 +12,7 @@ RUN \
     openresolv=3.14.1-r0 \
     iptables=1.8.11-r1 \
     wireguard-tools=1.0.20250521-r0 \
+    socat=1.8.0.3-r1 \
     \
     && ln -sf /sbin/xtables-nft-multi /sbin/ip6tables \
     && ln -sf /sbin/xtables-nft-multi /sbin/iptables

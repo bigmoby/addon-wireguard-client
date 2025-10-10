@@ -38,7 +38,11 @@ if ! bashio::config.has_value 'interface.private_key'; then
     bashio::exit.nok 'You need a private_key configured for the interface client'
 else
     interface_private_key=$(bashio::config 'interface.private_key')
-     echo "PrivateKey = ${interface_private_key}" >> "${config}"
+    # Validate that private key is not empty
+    if [ -z "${interface_private_key}" ]; then
+        bashio::exit.nok 'Private key cannot be empty'
+    fi
+    echo "PrivateKey = ${interface_private_key}" >> "${config}"
 fi
 
 # Check if at least 1 address value and if true get the interface address
@@ -57,8 +61,11 @@ if bashio::config.has_value "interface.dns"; then
     for address in $(bashio::config "interface.dns"); do
         listDns+=("${address}")
     done
-    dns=$(IFS=", "; echo "${listDns[*]}")
-    echo "DNS = ${dns}" >> "${config}"
+    # Only add DNS if we have at least one DNS server
+    if [ ${#listDns[@]} -gt 0 ]; then
+        dns=$(IFS=", "; echo "${listDns[*]}")
+        echo "DNS = ${dns}" >> "${config}"
+    fi
 fi
 
 if [[ $(</proc/sys/net/ipv4/ip_forward) -eq 0 ]]; then
@@ -110,6 +117,10 @@ for peer in $(bashio::config 'peers|keys'); do
 
     # Check if public key value and if true get the peer public key
     peer_public_key=$(bashio::config "peers[${peer}].public_key")
+    # Validate that public key is not empty
+    if [ -z "${peer_public_key}" ]; then
+        bashio::exit.nok "Public key cannot be empty for peer ${peer}"
+    fi
 
     # Check if pre_shared key value and if true get the peer pre_shared key
     pre_shared_key=""
@@ -144,6 +155,11 @@ for peer in $(bashio::config 'peers|keys'); do
         done
     else
         bashio::exit.nok 'You need a allowed_ips configured for the peer'
+    fi
+
+    # Only proceed if we have at least one allowed IP
+    if [ ${#list[@]} -eq 0 ]; then
+        bashio::exit.nok 'No valid allowed_ips found for peer'
     fi
 
     allowed_ips=$(IFS=", "; echo "${list[*]}")
