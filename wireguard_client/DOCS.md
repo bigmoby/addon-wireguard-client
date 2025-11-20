@@ -73,7 +73,9 @@ Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
 
 ## WireGuard Client Unified API
 
-This add-on provides a unified API on port 51821 with comprehensive functionality:
+This add-on provides a unified API on port 51821 with comprehensive functionality.
+
+> **📚 Complete Documentation**: For comprehensive API documentation, detailed examples, automation templates, and advanced configurations, see **[API.md](https://github.com/bigmoby/addon-wireguard-client/blob/main/wireguard_client/API.md)**.
 
 ### 📊 Status Endpoint (GET /)
 
@@ -128,18 +130,6 @@ rest_command:
     url: "http://local-wireguard-client:51821/reconnect"
     method: GET
 ```
-
-### 📚 Complete Documentation
-
-For comprehensive API documentation, detailed examples, automation templates, and advanced configurations, see **[API.md](API.md)**.
-
-The API documentation includes:
-
-- Complete endpoint specifications
-- Home Assistant sensor configurations
-- Automation examples
-- Testing procedures
-- Troubleshooting guides
 
 ## Authors & contributors
 

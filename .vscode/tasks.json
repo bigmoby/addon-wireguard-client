@@ -2,20 +2,64 @@
    "version":"2.0.0",
    "tasks":[
       {
+         "label":"Fix Docker Mounts",
+         "type":"shell",
+         "command":"bash -c 'echo \"🔧 Configurazione mount Docker...\" && echo \"\" && mkdir -p /mnt/supervisor/share && if ! mountpoint -q /mnt/supervisor/share 2>/dev/null; then sudo mount -t tmpfs -o size=100M tmpfs /mnt/supervisor/share 2>/dev/null && echo \"✓ tmpfs montato su /mnt/supervisor/share\" || echo \"⚠ Impossibile montare tmpfs (potrebbe richiedere riavvio devcontainer)\"; else echo \"✓ /mnt/supervisor/share è già montato\"; fi && echo \"\" && (sudo mount --make-shared /mnt/supervisor/share 2>/dev/null && echo \"✓ Mount configurato come shared\") || echo \"ℹ Mount propagation potrebbe non essere configurabile\" && echo \"\" && echo \"💡 Se Home Assistant non si avvia ancora, riavvia il devcontainer\"'",
+         "group":"none",
+         "presentation":{
+            "reveal":"always",
+            "panel":"new",
+            "focus":true
+         }
+      },
+      {
          "label":"Start Home Assistant",
          "type":"shell",
-         "command":"supervisor_run",
+         "command":"bash -c 'echo \"Avvio Home Assistant...\" && supervisor_run'",
          "group":{
             "kind":"test",
             "isDefault":true
          },
          "presentation":{
             "reveal":"always",
-            "panel":"new"
+            "panel":"new",
+            "focus":true,
+            "clear":false
          },
+         "isBackground":true,
          "problemMatcher":[
-
+            {
+               "pattern":{
+                  "regexp": ".*",
+                  "file":1
+               },
+               "background":{
+                  "activeOnStart":true,
+                  "beginsPattern":".*Starting.*|.*Waiting.*",
+                  "endsPattern":".*Started.*|.*ready.*"
+               }
+            }
          ]
+      },
+      {
+         "label":"Stop Home Assistant",
+         "type":"shell",
+         "command":"bash -c 'echo \"Arresto Home Assistant...\" && docker stop hassio_supervisor 2>/dev/null || echo \"Container già fermo o non trovato\"'",
+         "group":"none",
+         "presentation":{
+            "reveal":"always",
+            "panel":"new"
+         }
+      },
+      {
+         "label":"Check Home Assistant Status",
+         "type":"shell",
+         "command":"bash -c 'echo \"Verifica stato Home Assistant...\" && docker ps --filter \"name=hassio\" --format \"{{.Names}}: {{.Status}}\" && echo \"\" && curl -s http://localhost:8123/api/ | head -3 || echo \"Home Assistant non risponde sulla porta 8123\"'",
+         "group":"none",
+         "presentation":{
+            "reveal":"always",
+            "panel":"new"
+         }
       }
    ]
 }

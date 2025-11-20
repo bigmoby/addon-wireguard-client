@@ -9,7 +9,9 @@
 	"runArgs":[
 	   "-e",
 	   "GIT_EDITOR=code --wait",
-	   "--privileged"
+	   "--privileged",
+	   "--mount",
+	   "type=tmpfs,destination=/mnt/supervisor/share"
 	],
 	"containerEnv":{
 	   "WORKSPACE_DIRECTORY":"${containerWorkspaceFolder}"

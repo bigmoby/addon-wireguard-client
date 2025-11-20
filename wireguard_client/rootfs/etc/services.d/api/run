@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
 # ==============================================================================
 # Home Assistant Third Party Add-on: WireGuard Client - Unified API (socat)
 # s6 service: single 'run' that spawns socat; per-connection handler generated inline.
@@ -107,21 +108,22 @@ case "$action" in
           uptime_seconds=$(( current_time - handshake_epoch ))
           (( uptime_seconds < 0 )) && uptime_seconds=0
         else
-          latest_handshake=""
+          latest_handshake="Never"
           uptime_seconds=0
         fi
 
-        total_rx=$(( total_rx + transfer_rx ))
-        total_tx=$(( total_tx + transfer_tx ))
-        peer_count=$(( peer_count + 1 ))
-        count=$(( count + 1 ))
-
+        # Create peer object (always include latest_handshake)
         peer_obj="$(bashio::var.json \
           'endpoint' "${endpoint}" \
           'latest_handshake' "${latest_handshake}" \
           'transfer_rx' "^${transfer_rx}" \
           'transfer_tx' "^${transfer_tx}" \
           'uptime_seconds' "^${uptime_seconds}")"
+
+        total_rx=$(( total_rx + transfer_rx ))
+        total_tx=$(( total_tx + transfer_tx ))
+        peer_count=$(( peer_count + 1 ))
+        count=$(( count + 1 ))
 
         if [[ "${peers_json}" == "[]" ]]; then
           peers_json="[${peer_obj}]"
@@ -131,13 +133,18 @@ case "$action" in
       fi
     done <<< "$(wg show all dump 2>/dev/null || true)"
 
-    json="$(bashio::var.json \
+    # Build JSON manually to avoid double-serialization of peers array
+    # bashio::var.json would serialize peers_json as a string, but we need it as an array
+    json_base="$(bashio::var.json \
       'status' "${interface_status}" \
       'total_traffic_rx' "^${total_rx}" \
       'total_traffic_tx' "^${total_tx}" \
       'peer_count' "^${peer_count}" \
-      'timestamp' "^${current_time}" \
-      'peers' "${peers_json}")"
+      'timestamp' "^${current_time}")"
+
+    # Insert peers array directly into JSON (remove closing brace, add peers, close)
+    # json_base ends with }, so we replace the } with , "peers": [...]}
+    json="${json_base%'}'}"', "peers": '"${peers_json}"'}'
 
     send_json "200 OK" "${json}"
     ;;
