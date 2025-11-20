@@ -1,9 +1,27 @@
+## What's changed in Wireguard Client Add-on v0.2.8
+
+### 🐛 Fixes
+
+- **Fixed critical API bug**: Resolved double JSON serialization issue where `peers` field was returned as a string instead of a JSON array. This was causing template errors in Home Assistant sensors (`Template variable warning: 'str object' has no attribute 'peer_1'`). The API now correctly returns `peers` as a proper JSON array.
+
+- **Fixed Jinja2 templates**: Corrected Home Assistant sensor templates to properly access `peers[0]` instead of `peers.peer_1`, ensuring compatibility with the array structure.
+
+- **Fixed API response format**: `latest_handshake` now correctly returns `"Never"` (as a string) when no handshake has occurred, instead of an empty string, making template handling more reliable.
+
+### ⚠️ Known Issues
+
+- **Port configuration after update**: If you upgraded from v0.2.6 or earlier and the API port is not working, you may need to restore default network settings in the add-on configuration. This is a migration issue where the port configuration doesn't automatically update during the upgrade process. See v0.2.7 release notes for details.
+
 ## What's changed in Wireguard Client Add-on v0.2.7
 
 ### 🚀 Enhancements
 
 - **Replaced netcat with socat**: Improved HTTP server with persistent connections and better performance
 - **Unified API**: Combined status and services into single endpoint on port 51821
+
+### ⚠️ Important Note
+
+- **Port configuration migration**: After updating to v0.2.7, if you experience issues with the API (e.g., "WireGuard Unified API disabled (no port exposed)"), you may need to restore default network settings. Go to the add-on configuration → Network section → Click "Restore defaults" to update the port from the old configuration (e.g., port 80) to the new unified API port (51821). This is a known migration issue when upgrading from previous versions.
 
 ## What's changed in Wireguard Client Add-on v0.2.6
 
