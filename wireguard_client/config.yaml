@@ -38,7 +38,7 @@ options:
 schema:
   log_level: list(trace|debug|info|notice|warning|error|fatal)?
   interface:
-    private_key: password?
+    private_key: str?
     address: str
     dns:
       - str?
