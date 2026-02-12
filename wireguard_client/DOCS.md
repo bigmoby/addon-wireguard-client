@@ -143,7 +143,7 @@ This is a fork of Wireguard Add-on
 
 MIT License
 
-Copyright (c) 2020-2025 Fabio Mauro
+Copyright (c) 2020-2026 Fabio Mauro
 
 Copyright (c) 2019-2020 Franck Nijhof
 
