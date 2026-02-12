@@ -55,6 +55,10 @@ This add-on is not compatible with a catch-all value for allowed_ips, like 0.0.0
 
 it's because you are trying to create routes to/from every possible IP through the WireGuard interface. Simply use single ips or ip classes that need to be connected. If you don't own a static ip address you can consider a VPN.
 
+- **Local network services (MQTT, etc.) stop working after starting WireGuard**
+
+If local services like MQTT broker stop communicating with clients in your LAN after starting WireGuard, this is likely a routing issue. WireGuard routes traffic for all IPs listed in `allowed_ips` through the VPN tunnel. To fix this, ensure your `allowed_ips` configuration **only includes remote network IPs** that should go through the VPN, and **excludes your local network ranges** (e.g., `192.168.0.0/16`, `192.168.1.0/24`, `10.0.0.0/8` for local networks). For example, if your local network is `192.168.1.0/24` and you want to access a remote network `10.6.0.0/24` through the VPN, use `allowed_ips: ["10.6.0.0/24"]` and NOT ranges that include your local network.
+
 ## Contributing
 
 This is an active open-source project. We are always open to people who want to

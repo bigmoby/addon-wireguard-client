@@ -1,2 +1,3 @@
 .DS_Store
-wireguard-server/**
+wireguard-server/config/
+wireguard-server/.env

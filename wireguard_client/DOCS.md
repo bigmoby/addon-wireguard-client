@@ -68,6 +68,8 @@ peers:
 
 Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
 
+> **⚠️ Important - Local Network Traffic**: If you experience issues with local services (e.g., MQTT broker, local devices) after starting WireGuard, check your `allowed_ips` configuration. WireGuard will route traffic for all IPs listed in `allowed_ips` through the VPN tunnel. To keep local network traffic (LAN) working, make sure your `allowed_ips` only includes the remote network IPs that should go through the VPN, and **excludes your local network ranges** (e.g., `192.168.0.0/16`, `192.168.1.0/24`, `10.0.0.0/8` for local networks, etc.). For example, if your local network is `192.168.1.0/24` and you want to access a remote network `10.6.0.0/24` through the VPN, use `allowed_ips: ["10.6.0.0/24"]` and NOT `["0.0.0.0/0"]` or ranges that include your local network.
+
 1. Save the configuration.
 1. Start the "WireGuard" add-on
 
