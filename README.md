@@ -1,4 +1,4 @@
-# Home Assistant Bigmoby App (or add-on): WireGuard Client
+# Home Assistant Bigmoby App (aka add-on): WireGuard Client
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
@@ -87,7 +87,6 @@ If you are developing this add-on in a cloud environment where standard UI comma
    bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
    ```
 4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your add-ons appear under **Local add-ons**.
-
 
 ## Sponsor
 
