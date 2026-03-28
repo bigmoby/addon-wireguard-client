@@ -1,3 +1,16 @@
+## What's changed in Wireguard Client App (or add-on 🥸) v0.2.9
+
+### 🐛 Bug Fixes & Improvements
+
+*   **Workaround for HIBP check (#58)**:
+    Changed the `private_key` configuration type from `password` to `str`. This prevents the addon from failing to start or save configuration when the Home Assistant Supervisor cannot reach the "Have I Been Pwned" (HIBP) service (due to network issues, firewalls, or outages). This change ensures the addon is robust and reliable even in offline or restricted network environments.
+    *(Thanks to @negaft for the contribution! in https://github.com/bigmoby/addon-wireguard-client/pull/58)*
+
+### 📚 Documentation
+
+*   **English Documentation**: Translated the WireGuard server setup guide (for add-on testing purpose only!) ([wireguard-server/README.md](cci:7://file:///Users/bigmoby/Documents/HomeAssistant/addon-wireguard-client/wireguard-server/README.md:0:0-0:0)) and script outputs to English for better accessibility.
+*   **Git Security**: Updated [.gitignore](cci:7://file:///Users/bigmoby/Documents/HomeAssistant/addon-wireguard-client/.gitignore:0:0-0:0) to safely track WireGuard server helper scripts while strictly excluding sensitive configuration files (private keys).
+
 ## What's changed in Wireguard Client Add-on v0.2.8
 
 ### 🐛 Fixes

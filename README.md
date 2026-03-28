@@ -1,4 +1,4 @@
-# Home Assistant Bigmoby Add-on: WireGuard Client
+# Home Assistant Bigmoby App (or add-on): WireGuard Client
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
