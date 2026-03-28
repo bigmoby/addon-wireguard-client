@@ -1,4 +1,4 @@
-# Home Assistant Community Add-on: WireGuard Client
+# Home Assistant Community App: WireGuard Client
 
 [WireGuard®][wireguard] is an extremely simple yet fast and modern VPN that
 utilizes state-of-the-art cryptography. It aims to be faster, simpler, leaner,
