@@ -130,9 +130,7 @@ for peer in $(bashio::config 'peers|keys'); do
 
     # Check if endpoint value and if true get the peer endpoint
     endpoint=""
-    if ! bashio::config.has_value "peers[${peer}].endpoint"; then
-        bashio::exit.nok 'You need a endpoint configured for the peer'
-    else
+    if bashio::config.has_value "peers[${peer}].endpoint"; then
         endpoint=$(bashio::config "peers[${peer}].endpoint")
     fi
 
@@ -173,7 +171,10 @@ for peer in $(bashio::config 'peers|keys'); do
         then
             echo "PreSharedKey = ${pre_shared_key}"
         fi
-        echo "Endpoint = ${endpoint}"
+        if [ ! "${endpoint}" == "" ]
+        then
+            echo "Endpoint = ${endpoint}"
+        fi
         echo "AllowedIPs = ${allowed_ips}"
         echo "PersistentKeepalive = ${keep_alive}"
         echo ""

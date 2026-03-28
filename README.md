@@ -59,6 +59,10 @@ it's because you are trying to create routes to/from every possible IP through t
 
 If local services like MQTT broker stop communicating with clients in your LAN after starting WireGuard, this is likely a routing issue. WireGuard routes traffic for all IPs listed in `allowed_ips` through the VPN tunnel. To fix this, ensure your `allowed_ips` configuration **only includes remote network IPs** that should go through the VPN, and **excludes your local network ranges** (e.g., `192.168.0.0/16`, `192.168.1.0/24`, `10.0.0.0/8` for local networks). For example, if your local network is `192.168.1.0/24` and you want to access a remote network `10.6.0.0/24` through the VPN, use `allowed_ips: ["10.6.0.0/24"]` and NOT ranges that include your local network.
 
+- **Connection silently fails or no handshake occurs**
+
+Since version v0.2.10 (or later), the `endpoint` configuration for peers is optional to support roaming clients interacting with this add-on. However, because this add-on primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently without emitting any visible configuration errors.
+
 ## Contributing
 
 This is an active open-source project. We are always open to people who want to
@@ -68,6 +72,22 @@ We have set up a separate document containing our
 [contribution guidelines](CONTRIBUTING.md).
 
 Thank you for being involved! :heart_eyes:
+
+## Local Development
+
+If you are developing this add-on in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+
+1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
+2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local add-ons folder:
+   ```bash
+   ./devcontainer_bootstrap
+   ```
+3. Restart the Supervisor:
+   ```bash
+   bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
+   ```
+4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your add-ons appear under **Local add-ons**.
+
 
 ## Sponsor
 

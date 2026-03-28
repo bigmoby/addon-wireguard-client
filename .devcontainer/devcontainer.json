@@ -9,9 +9,7 @@
 	"runArgs":[
 	   "-e",
 	   "GIT_EDITOR=code --wait",
-	   "--privileged",
-	   "--mount",
-	   "type=tmpfs,destination=/mnt/supervisor/share"
+	   "--privileged"
 	],
 	"containerEnv":{
 	   "WORKSPACE_DIRECTORY":"${containerWorkspaceFolder}"
@@ -37,6 +35,9 @@
 	   }
 	},
 	"mounts":[
-	   "type=volume,target=/var/lib/docker"
+	   "source=${localWorkspaceFolder},target=/workspaces/addon-wireguard-client,type=bind,consistency=cached",
+	   "type=volume,target=/var/lib/docker",
+       "type=volume,target=/mnt/supervisor",
+       "source=${localWorkspaceFolder},target=/mnt/supervisor/addons/local/addon-wireguard,type=bind,consistency=cached"
 	]
  }

@@ -41,5 +41,18 @@ else
 fi
 
 echo ""
-echo "✅ Bootstrap complete"
+echo "🔧 Mount local addons directory..."
+sudo mkdir -p /mnt/supervisor/addons/local/addon-wireguard
+if ! mountpoint -q /mnt/supervisor/addons/local/addon-wireguard 2>/dev/null; then
+    if sudo mount --bind /workspaces/addon-wireguard-client /mnt/supervisor/addons/local/addon-wireguard 2>/dev/null; then
+        echo "✓ Workspace directory bind mounted a /mnt/supervisor/addons/local/addon-wireguard"
+    else
+        echo "⚠ Errore nel montaggio bind del workspace, procedo con la sincronizzazione files"
+        sudo cp -rT /workspaces/addon-wireguard-client /mnt/supervisor/addons/local/addon-wireguard
+    fi
+else
+    echo "✓ Workspace directory already mounted"
+fi
 
+echo ""
+echo "✅ Bootstrap complete"

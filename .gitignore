@@ -1,3 +1,5 @@
 .DS_Store
 wireguard-server/config/
 wireguard-server/.env
+test-addon.sh
+fake_data/
