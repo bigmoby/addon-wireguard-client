@@ -70,7 +70,7 @@ Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
 
 > **⚠️ Important - Local Network Traffic**: If you experience issues with local services (e.g., MQTT broker, local devices) after starting WireGuard, check your `allowed_ips` configuration. WireGuard will route traffic for all IPs listed in `allowed_ips` through the VPN tunnel. To keep local network traffic (LAN) working, make sure your `allowed_ips` only includes the remote network IPs that should go through the VPN, and **excludes your local network ranges** (e.g., `192.168.0.0/16`, `192.168.1.0/24`, `10.0.0.0/8` for local networks, etc.). For example, if your local network is `192.168.1.0/24` and you want to access a remote network `10.6.0.0/24` through the VPN, use `allowed_ips: ["10.6.0.0/24"]` and NOT `["0.0.0.0/0"]` or ranges that include your local network.
 
-> **ℹ️ Note on Endpoint Configuration**: The `endpoint` parameter in the `peers` section is optional. You can leave it empty or omit it *only* if you are setting up a "roaming" peer (e.g., a mobile device connecting to this add-on) and have configured a fixed `listen-port` using `post_up` commands. However, because this add-on primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently.
+> **ℹ️ Note on Endpoint Configuration**: The `endpoint` parameter in the `peers` section is optional. You can leave it empty or omit it _only_ if you are setting up a "roaming" peer (e.g., a mobile device connecting to this add-on) and have configured a fixed `listen-port` using `post_up` commands. However, because this add-on primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently.
 
 #### Advanced Example: Roaming Peer
 
@@ -155,9 +155,9 @@ rest_command:
     method: GET
 ```
 
-## Local Development (Cloud IDEs like Antigravity)
+## Local Development
 
-If you are developing this add-on in a cloud environment (e.g., Antigravity or GitHub Codespaces) where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+If you are developing this add-on in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
 
 1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
 2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local add-ons folder:
