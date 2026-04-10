@@ -460,7 +460,7 @@ rest:
     scan_interval: 30
     sensor:
       - name: "WireGuard API JSON"
-        value_template: "{{ value_json | to_json }}"
+        value_template: "OK"
         json_attributes:
           - status
           - peers
