@@ -1,3 +1,9 @@
+## What's changed in Wireguard Client App v0.3.1
+
+### 🐛 Bug Fixes
+
+- **Fixed s6 service restart loop**: Replaced `exit 0` with `exec sleep infinity` in background service scripts when services (Failover watchdog or Unified API) are disabled. This prevents `s6-overlay` from continuously restarting disabled services and flooding system logs every second.
+
 ## What's changed in Wireguard Client App v0.3.0
 
 ### 🚀 Major Enhancements
