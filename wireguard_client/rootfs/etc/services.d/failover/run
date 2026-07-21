@@ -8,14 +8,14 @@ set -euo pipefail
 # Check if failover is enabled
 if ! bashio::config.true 'failover.enabled'; then
     bashio::log.info "WireGuard Failover is disabled."
-    exit 0
+    exec sleep infinity
 fi
 
 # Count the number of configured peers
 peer_count=$(bashio::config 'peers|keys' | wc -w)
 if [ "${peer_count}" -lt 2 ]; then
     bashio::log.warning "WireGuard Failover is enabled but less than 2 peers are configured. Watchdog will exit."
-    exit 0
+    exec sleep infinity
 fi
 
 # Load configurations
