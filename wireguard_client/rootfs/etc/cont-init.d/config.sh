@@ -16,6 +16,7 @@ declare post_down
 declare post_up
 declare mtu
 declare pre_shared_key
+declare peer_index
 
 if ! bashio::fs.directory_exists '/ssl/wireguard'; then
     mkdir -p /ssl/wireguard ||
@@ -33,39 +34,52 @@ config="/etc/wireguard/${interface}.conf"
 # Start creation of configuration
 echo "[Interface]" > "${config}"
 
+# Determine active peer index
+active_peer_idx="${ACTIVE_PEER_INDEX:-0}"
+
 # Check if at least 1 private key value and if true get the interface private key
-if ! bashio::config.has_value 'interface.private_key'; then
-    bashio::exit.nok 'You need a private_key configured for the interface client'
+if bashio::config.true 'failover.enabled' && bashio::config.has_value "peers[${active_peer_idx}].private_key"; then
+    interface_private_key=$(bashio::config "peers[${active_peer_idx}].private_key")
 else
-    interface_private_key=$(bashio::config 'interface.private_key')
-    # Validate that private key is not empty
-    if [ -z "${interface_private_key}" ]; then
-        bashio::exit.nok 'Private key cannot be empty'
+    if ! bashio::config.has_value 'interface.private_key'; then
+        bashio::exit.nok 'You need a private_key configured for the interface client'
+    else
+        interface_private_key=$(bashio::config 'interface.private_key')
     fi
-    echo "PrivateKey = ${interface_private_key}" >> "${config}"
 fi
+if [ -z "${interface_private_key}" ]; then
+    bashio::exit.nok 'Private key cannot be empty'
+fi
+echo "PrivateKey = ${interface_private_key}" >> "${config}"
 
 # Check if at least 1 address value and if true get the interface address
-if ! bashio::config.has_value 'interface.address'; then
-    bashio::exit.nok 'You need a address configured for the interface client'
+if bashio::config.true 'failover.enabled' && bashio::config.has_value "peers[${active_peer_idx}].address"; then
+    address=$(bashio::config "peers[${active_peer_idx}].address")
 else
-    address=$(bashio::config 'interface.address')
-    [[ "${address}" == *"/"* ]] || address="${address}/24"
-   echo "Address = ${address}" >> "${config}"
+    if ! bashio::config.has_value 'interface.address'; then
+        bashio::exit.nok 'You need a address configured for the interface client'
+    else
+        address=$(bashio::config 'interface.address')
+    fi
 fi
+[[ "${address}" == *"/"* ]] || address="${address}/24"
+echo "Address = ${address}" >> "${config}"
 
 # Add all server DNS addresses to the configuration
-if bashio::config.has_value "interface.dns"; then
-    listDns=()
-    # Use allowed IP's defined by the user.
+listDns=()
+if bashio::config.true 'failover.enabled' && bashio::config.has_value "peers[${active_peer_idx}].dns"; then
+    for address in $(bashio::config "peers[${active_peer_idx}].dns"); do
+        listDns+=("${address}")
+    done
+elif bashio::config.has_value "interface.dns"; then
     for address in $(bashio::config "interface.dns"); do
         listDns+=("${address}")
     done
-    # Only add DNS if we have at least one DNS server
-    if [ ${#listDns[@]} -gt 0 ]; then
-        dns=$(IFS=", "; echo "${listDns[*]}")
-        echo "DNS = ${dns}" >> "${config}"
-    fi
+fi
+
+if [ ${#listDns[@]} -gt 0 ]; then
+    dns=$(IFS=", "; echo "${listDns[*]}")
+    echo "DNS = ${dns}" >> "${config}"
 fi
 
 if [[ $(</proc/sys/net/ipv4/ip_forward) -eq 0 ]]; then
@@ -113,7 +127,15 @@ fi
 # Peer configuration #
 ######################
 # Fetch all the peers
+peer_index=0
 for peer in $(bashio::config 'peers|keys'); do
+    # If failover is enabled, only write the active peer
+    if bashio::config.true 'failover.enabled'; then
+        if [ "${peer_index}" -ne "${ACTIVE_PEER_INDEX:-0}" ]; then
+            peer_index=$((peer_index + 1))
+            continue
+        fi
+    fi
 
     # Check if public key value and if true get the peer public key
     peer_public_key=$(bashio::config "peers[${peer}].public_key")
@@ -179,6 +201,8 @@ for peer in $(bashio::config 'peers|keys'); do
         echo "PersistentKeepalive = ${keep_alive}"
         echo ""
     } >> "${config}"
+
+    peer_index=$((peer_index + 1))
 done
 
 bashio::log.info "Ended to write Wireguard configuration into: [${config}]"

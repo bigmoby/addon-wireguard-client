@@ -1,7 +1,7 @@
 services:
-  wireguard-server:
+  wireguard-server-1:
     image: linuxserver/wireguard:latest
-    container_name: wireguard-server
+    container_name: wireguard-server-1
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -11,15 +11,43 @@ services:
       - TZ=Europe/Rome
       - SERVERURL=auto
       - SERVERPORT=51820
-      - PEERS=2
+      - PEERS=1
       - PEERDNS=auto
       - INTERNAL_SUBNET=10.13.13.0
       - ALLOWEDIPS=0.0.0.0/0
     volumes:
-      - ./config:/config
+      - ./config1:/config
       - /lib/modules:/lib/modules:ro
     ports:
       - "51820:51820/udp"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+    restart: unless-stopped
+    networks:
+      - wireguard-net
+
+  wireguard-server-2:
+    image: linuxserver/wireguard:latest
+    container_name: wireguard-server-2
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Rome
+      - SERVERURL=auto
+      - SERVERPORT=51821
+      - PEERS=1
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=10.14.14.0
+      - ALLOWEDIPS=0.0.0.0/0
+    volumes:
+      - ./config2:/config
+      - /lib/modules:/lib/modules:ro
+    ports:
+      - "51821:51820/udp"
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1

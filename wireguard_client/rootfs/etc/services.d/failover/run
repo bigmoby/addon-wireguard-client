@@ -1,0 +1,184 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community Add-on: WireGuard Client - Failover Watchdog Daemon
+# ==============================================================================
+set -euo pipefail
+
+# Check if failover is enabled
+if ! bashio::config.true 'failover.enabled'; then
+    bashio::log.info "WireGuard Failover is disabled."
+    exit 0
+fi
+
+# Count the number of configured peers
+peer_count=$(bashio::config 'peers|keys' | wc -w)
+if [ "${peer_count}" -lt 2 ]; then
+    bashio::log.warning "WireGuard Failover is enabled but less than 2 peers are configured. Watchdog will exit."
+    exit 0
+fi
+
+# Load configurations
+check_interval=$(bashio::config 'failover.check_interval' || echo 60)
+handshake_threshold=$(bashio::config 'failover.handshake_threshold' || echo 150)
+ping_ip=$(bashio::config 'failover.ping_ip' || echo "")
+max_failures=$(bashio::config 'failover.max_failures' || echo 3)
+revert_interval=$(bashio::config 'failover.revert_interval' || echo 900)
+
+bashio::log.info "WireGuard Failover Watchdog started."
+bashio::log.info "Configured peers: ${peer_count}"
+bashio::log.info "Check interval: ${check_interval}s, Handshake threshold: ${handshake_threshold}s, Max failures: ${max_failures}"
+if [ -n "${ping_ip}" ]; then
+    bashio::log.info "Ping check target IP: ${ping_ip}"
+fi
+bashio::log.info "Primary revert interval: ${revert_interval}s"
+
+# State variables
+active_index="${ACTIVE_PEER_INDEX:-0}"
+failures=0
+current_time=$(date +%s)
+last_switch_time=${current_time}
+last_revert_attempt=${current_time}
+
+# Health Check Function
+check_health() {
+    local now
+    now=$(date +%s)
+
+    # Verify if interface wg0 exists
+    if ! ip link show wg0 >/dev/null 2>&1; then
+        bashio::log.warning "WireGuard interface wg0 does not exist."
+        return 1
+    fi
+
+    # Get active peer public key from WireGuard
+    local current_pubkey
+    current_pubkey=$(wg show wg0 peers 2>/dev/null || true)
+    if [ -z "${current_pubkey}" ]; then
+        bashio::log.warning "No peers configured in active wg0 interface."
+        return 1
+    fi
+
+    # Retrieve latest handshake epoch
+    local latest_handshake
+    latest_handshake=$(wg show wg0 latest-handshakes | grep "${current_pubkey}" | awk '{print $2}' || true)
+    [[ "${latest_handshake}" =~ ^[0-9]+$ ]] || latest_handshake=0
+
+    # If no handshake has ever happened
+    if [ "${latest_handshake}" -eq 0 ]; then
+        local elapsed=$(( now - last_switch_time ))
+        # Give a 60-second grace period after a switch or boot before failing
+        if [ "${elapsed}" -lt 60 ]; then
+            bashio::log.debug "No handshake yet, but tunnel is in startup/switch grace period (${elapsed}s elapsed)."
+            return 0
+        fi
+        bashio::log.warning "No handshake established since start/switch (${elapsed}s ago)."
+        return 1
+    fi
+
+    # Check elapsed time since latest handshake
+    local handshake_age=$(( now - latest_handshake ))
+    if [ "${handshake_age}" -gt "${handshake_threshold}" ]; then
+        bashio::log.warning "Latest handshake is too old (${handshake_age}s ago, threshold: ${handshake_threshold}s)."
+        
+        # Secondary check: Ping (if configured)
+        local current_ping_ip=""
+        if bashio::config.has_value "peers[${active_index}].ping_ip"; then
+            current_ping_ip=$(bashio::config "peers[${active_index}].ping_ip")
+        else
+            current_ping_ip="${ping_ip}"
+        fi
+
+        if [ -n "${current_ping_ip}" ]; then
+            bashio::log.info "Handshake threshold exceeded. Performing ping verification to ${current_ping_ip}..."
+            if ping -c 1 -W 2 "${current_ping_ip}" >/dev/null 2>&1; then
+                bashio::log.info "Ping verification succeeded. Connection is alive."
+                return 0
+            else
+                bashio::log.warning "Ping verification to ${current_ping_ip} failed."
+                return 1
+            fi
+        fi
+        return 1
+    fi
+
+    return 0
+}
+
+# Switch Peer Function
+switch_peer() {
+    local target_index="${1}"
+    local now
+    now=$(date +%s)
+    
+    bashio::log.warning "Switching active peer index to ${target_index}..."
+    
+    # Export ACTIVE_PEER_INDEX for config.sh
+    export ACTIVE_PEER_INDEX="${target_index}"
+    if [ -d /var/run/s6/container_environment ]; then
+        echo -n "${target_index}" > /var/run/s6/container_environment/ACTIVE_PEER_INDEX
+    fi
+    
+    # Regenerate wg0.conf
+    if ! /etc/cont-init.d/config.sh; then
+        bashio::log.error "Failed to regenerate WireGuard configuration."
+        return 1
+    fi
+    
+    # Restart the interface
+    bashio::log.info "Restarting WireGuard tunnel..."
+    wg-quick down wg0 2>/dev/null || true
+    if wg-quick up wg0; then
+        bashio::log.info "WireGuard tunnel restarted successfully."
+        active_index="${target_index}"
+        failures=0
+        last_switch_time="${now}"
+        return 0
+    else
+        bashio::log.error "Failed to bring WireGuard interface wg0 up with the new peer configuration."
+        return 1
+    fi
+}
+
+# Main Loop
+while true; do
+    sleep "${check_interval}"
+    
+    if check_health; then
+        # Connection is healthy
+        if [ "${failures}" -ne 0 ]; then
+            bashio::log.info "Connection recovered."
+            failures=0
+        fi
+        
+        # If we are on a backup peer, check if we should attempt to revert to primary peer (index 0)
+        if [ "${active_index}" -gt 0 ]; then
+            now=$(date +%s)
+            elapsed_since_revert=$(( now - last_revert_attempt ))
+            if [ "${elapsed_since_revert}" -ge "${revert_interval}" ]; then
+                bashio::log.notice "Attempting to revert to primary peer (index 0) after ${elapsed_since_revert}s on backup..."
+                last_revert_attempt="${now}"
+                # Attempt to switch to primary peer
+                switch_peer 0 || true
+            fi
+        fi
+    else
+        # Health check failed
+        failures=$(( failures + 1 ))
+        bashio::log.warning "Connection health check failed (consecutive failures: ${failures}/${max_failures})"
+        
+        if [ "${failures}" -ge "${max_failures}" ]; then
+            # Calculate next index
+            next_index=$(( (active_index + 1) % peer_count ))
+            bashio::log.warning "Failover threshold reached. Attempting switch to peer index ${next_index}."
+            
+            # If we were attempting to revert to primary and it failed, we want to update the last_revert_attempt
+            # to avoid immediate retries.
+            if [ "${active_index}" -eq 0 ] && [ "${next_index}" -gt 0 ]; then
+                last_revert_attempt=$(date +%s)
+            fi
+            
+            switch_peer "${next_index}" || true
+        fi
+    fi
+done

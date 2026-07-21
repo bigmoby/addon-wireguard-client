@@ -10,7 +10,7 @@ supercomputers alike, fit for many different circumstances.
 
 Initially released for the Linux kernel, it is now cross-platform (Windows,
 macOS, BSD, iOS, Android) and widely deployable,
-including via an Hass.io add-on!
+including via a Hass.io app!
 
 WireGuard is currently under heavy development, but already it might be
 regarded as the most secure, easiest to use, and the simplest VPN solution
@@ -30,20 +30,20 @@ Fabio Mauro
 
 Fabio Mauro Bigmoby
 
-Project forked from [Wireguard add-on][original_project].
+Project forked from [Wireguard app][original_project].
 
 For a full list of all authors and contributors,
 check [the contributor's page][contributors].
 
 ## Installation
 
-WireGuard Client add-on is pretty simple, however, can be quite complex for user that isn't
-familiar with all terminology used. The add-on takes care of a lot of things
+WireGuard Client app is pretty simple, however, can be quite complex for user that isn't
+familiar with all terminology used. The app takes care of a lot of things
 for you (if you want).
 
 Follow the following steps for installation & a quick start:
 
-1. Search for the "WireGuard Client" add-on in the Supervisor add-on store
+1. Search for the "WireGuard Client" app in the Supervisor app store
    and install it.
 1. use the following configuration as example:
 
@@ -70,7 +70,7 @@ Please `0.0.0.0/0` is not allowed as `allowed_ips` value.
 
 > **⚠️ Important - Local Network Traffic**: If you experience issues with local services (e.g., MQTT broker, local devices) after starting WireGuard, check your `allowed_ips` configuration. WireGuard will route traffic for all IPs listed in `allowed_ips` through the VPN tunnel. To keep local network traffic (LAN) working, make sure your `allowed_ips` only includes the remote network IPs that should go through the VPN, and **excludes your local network ranges** (e.g., `192.168.0.0/16`, `192.168.1.0/24`, `10.0.0.0/8` for local networks, etc.). For example, if your local network is `192.168.1.0/24` and you want to access a remote network `10.6.0.0/24` through the VPN, use `allowed_ips: ["10.6.0.0/24"]` and NOT `["0.0.0.0/0"]` or ranges that include your local network.
 
-> **ℹ️ Note on Endpoint Configuration**: The `endpoint` parameter in the `peers` section is optional. You can leave it empty or omit it _only_ if you are setting up a "roaming" peer (e.g., a mobile device connecting to this add-on) and have configured a fixed `listen-port` using `post_up` commands. However, because this add-on primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently.
+> **ℹ️ Note on Endpoint Configuration**: The `endpoint` parameter in the `peers` section is optional. You can leave it empty or omit it _only_ if you are setting up a "roaming" peer (e.g., a mobile device connecting to this app) and have configured a fixed `listen-port` using `post_up` commands. However, because this app primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently.
 
 #### Advanced Example: Roaming Peer
 
@@ -93,11 +93,49 @@ peers:
 ```
 
 1. Save the configuration.
-1. Start the "WireGuard" add-on
+1. Start the "WireGuard" app
+
+### Automatic Peer Failover
+
+If you have multiple WireGuard servers (e.g. for redundancy in case of power outages or downtime), you can configure the app to automatically switch to alternative peers when the active one goes down.
+
+To enable failover, add the `failover` block to your configuration and list multiple peers in the `peers` section.
+
+Example configuration with failover:
+
+```yaml
+interface:
+  private_key: your-private-key
+  address: 10.6.0.2
+  dns: [8.8.8.8, 8.8.4.4]
+peers:
+  - public_key: primary-peer-public-key
+    endpoint: "primary.server.com:51820"
+    allowed_ips: ["10.6.0.0/24"]
+    persistent_keep_alive: 25
+    ping_ip: "10.6.0.1"        # Peer 0 specific VPN IP to ping
+  - public_key: backup-peer-public-key
+    endpoint: "backup.server.com:51820"
+    allowed_ips: ["10.6.0.0/24"]
+    persistent_keep_alive: 25
+    ping_ip: "10.7.0.1"        # Peer 1 specific VPN IP to ping
+failover:
+  enabled: true
+  ping_ip: "8.8.8.8"         # Optional: Global fallback IP to ping
+  check_interval: 60         # How often to check connection health (seconds)
+  handshake_threshold: 150   # Max time since last handshake before flagging connection as stale (seconds)
+  max_failures: 3            # Consecutive check failures before switching peer
+  revert_interval: 900       # How long to wait on backup peer before trying to revert to primary peer (seconds)
+```
+
+#### How it works:
+1. **Cryptokey Routing Resolution**: WireGuard's Cryptokey Routing does not natively allow active overlapping AllowedIP subnets. When `failover.enabled` is `true`, the app dynamically generates the configuration to apply the allowed IPs only to the currently active peer, avoiding routing conflicts.
+2. **Watchdog Daemon**: A background service monitors connection health. If the handshake age exceeds `handshake_threshold` (and `ping_ip` is unreachable if configured) for `max_failures` consecutive times, it switches the active peer to the next one in the list and restarts the interface.
+3. **Preemption (Revert)**: When running on a backup peer, the daemon will attempt to switch back to the primary peer (index 0) every `revert_interval` seconds to see if the main server has recovered.
 
 ## WireGuard Client Unified API
 
-This add-on provides a unified API on port 51821 with comprehensive functionality.
+This app provides a unified API on port 51821 with comprehensive functionality.
 
 > **📚 Complete Documentation**: For comprehensive API documentation, detailed examples, automation templates, and advanced configurations, see **[API.md](https://github.com/bigmoby/addon-wireguard-client/blob/main/wireguard_client/API.md)**.
 
@@ -157,10 +195,10 @@ rest_command:
 
 ## Local Development
 
-If you are developing this add-on in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+If you are developing this app in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
 
 1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
-2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local add-ons folder:
+2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local apps folder:
    ```bash
    ./devcontainer_bootstrap
    ```
@@ -168,13 +206,13 @@ If you are developing this add-on in a cloud environment where standard UI comma
    ```bash
    bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
    ```
-4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your add-ons appear under **Local add-ons**.
+4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your apps appear under **Local apps**.
 
 ## Authors & contributors
 
 The original setup of this repository is by [Fabio Mauro][bigmoby].
 
-This is a fork of Wireguard Add-on
+This is a fork of Wireguard App
 
 ## License
 

@@ -6,6 +6,15 @@ set -e
 
 echo "🔧 Setting up Docker mount propagation..."
 
+# Ensure /run/supervisor exists to prevent bind mount issues when starting Home Assistant Core container
+sudo mkdir -p /run/supervisor
+echo "✓ /run/supervisor folder created"
+
+# Pre-initialize supervisor jobs config to ignore the "healthy" check since devcontainer networks trigger "unhealthy" status
+sudo mkdir -p /mnt/supervisor
+echo '{"ignore_conditions": ["healthy"]}' | sudo tee /mnt/supervisor/jobs.json >/dev/null
+echo "✓ jobs.json pre-configured to ignore healthy checks"
+
 # Create supervisor directories
 mkdir -p /mnt/supervisor/{share,addon_configs}
 echo "✓ Supervisor directories created"
@@ -41,17 +50,17 @@ else
 fi
 
 echo ""
-echo "🔧 Mount local addons directory..."
-sudo mkdir -p /mnt/supervisor/addons/local/addon-wireguard
-if ! mountpoint -q /mnt/supervisor/addons/local/addon-wireguard 2>/dev/null; then
-    if sudo mount --bind /workspaces/addon-wireguard-client /mnt/supervisor/addons/local/addon-wireguard 2>/dev/null; then
-        echo "✓ Workspace directory bind mounted a /mnt/supervisor/addons/local/addon-wireguard"
+echo "🔧 Mount local apps directory..."
+sudo mkdir -p /mnt/supervisor/apps/local/wireguard_client
+if ! mountpoint -q /mnt/supervisor/apps/local/wireguard_client 2>/dev/null; then
+    if sudo mount --bind /workspaces/addon-wireguard-client/wireguard_client /mnt/supervisor/apps/local/wireguard_client 2>/dev/null; then
+        echo "✓ Workspace wireguard_client directory bind mounted to /mnt/supervisor/apps/local/wireguard_client"
     else
         echo "⚠ Errore nel montaggio bind del workspace, procedo con la sincronizzazione files"
-        sudo cp -rT /workspaces/addon-wireguard-client /mnt/supervisor/addons/local/addon-wireguard
+        sudo cp -rT /workspaces/addon-wireguard-client/wireguard_client /mnt/supervisor/apps/local/wireguard_client
     fi
 else
-    echo "✓ Workspace directory already mounted"
+    echo "✓ Workspace wireguard_client directory already mounted"
 fi
 
 echo ""

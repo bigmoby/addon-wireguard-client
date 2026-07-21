@@ -1,4 +1,4 @@
-# Home Assistant Bigmoby App (aka add-on): WireGuard Client
+# Home Assistant Bigmoby App: WireGuard Client
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
@@ -21,7 +21,7 @@ supercomputers alike, fit for many different circumstances.
 
 Initially released for the Linux kernel, it is now cross-platform (Windows,
 macOS, BSD, iOS, Android) and widely deployable,
-including via an Hass.io add-on!
+including via a Hass.io app!
 
 WireGuard is currently under heavy development, but already it might be
 regarded as the most secure, easiest to use, and the simplest VPN solution
@@ -37,16 +37,16 @@ From version **_0.1.0_** will be dismissed the current repository and this will 
 https://github.com/bigmoby/hassio-repository-addon
 ```
 
-- **Docker Hub pre-build add-on**
+- **Docker Hub pre-build app**
 
 Update migration process from version **_0.0.3-SNAPSHOT_** to version **_0.0.4-SNAPSHOT_** fails because of new Docker Hub pre-build support.
-**SO YOU MUST REMOVE AND INSTALL THE NEW ADD-ON VERSION** **_MANUALLY._**
+**SO YOU MUST REMOVE AND INSTALL THE NEW APP VERSION** **_MANUALLY._**
 
 ## Known issues
 
 - **error setting key 'net.ipv4.conf.all.src_valid_mark'**
 
-This add-on is not compatible with a catch-all value for allowed_ips, like 0.0.0.0/0. If you encounter this error
+This app is not compatible with a catch-all value for allowed_ips, like 0.0.0.0/0. If you encounter this error
 
 ```
   [#] sysctl -q net.ipv4.conf.all.src_valid_mark=1
@@ -61,7 +61,18 @@ If local services like MQTT broker stop communicating with clients in your LAN a
 
 - **Connection silently fails or no handshake occurs**
 
-Since version v0.2.10 (or later), the `endpoint` configuration for peers is optional to support roaming clients interacting with this add-on. However, because this add-on primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently without emitting any visible configuration errors.
+Since version v0.2.10 (or later), the `endpoint` configuration for peers is optional to support roaming clients interacting with this app. However, because this app primarily acts as a **Client**, if you are trying to connect to an external VPN server, **you must specify its `endpoint`** (address and port), otherwise your connection will fail to establish silently without emitting any visible configuration errors.
+
+## Automatic Peer Failover
+
+From version **_0.3.0_**, this app supports automatic peer failover. If you have multiple WireGuard servers (for instance, a primary and a backup server in case of power outages), you can configure the client to automatically switch to the alternative peer when connection health degrades.
+
+To enable it, set `failover.enabled: true` in your configuration. The app runs a background watchdog daemon that:
+- Monitors connection health based on the latest handshake age (and optionally pinging a VPN internal IP).
+- Switches active peers and restarts the tunnel if consecutive failures occur, avoiding routing conflicts (Cryptokey Routing) by only activating the AllowedIPs for the active peer.
+- Periodically attempts to revert to the primary peer when running on a backup peer to check if the main server has recovered.
+
+For detailed configuration instructions and examples, see [DOCS.md](wireguard_client/DOCS.md#automatic-peer-failover).
 
 ## Contributing
 
@@ -75,10 +86,10 @@ Thank you for being involved! :heart_eyes:
 
 ## Local Development
 
-If you are developing this add-on in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+If you are developing this app in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
 
 1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
-2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local add-ons folder:
+2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local apps folder:
    ```bash
    ./devcontainer_bootstrap
    ```
@@ -86,7 +97,7 @@ If you are developing this add-on in a cloud environment where standard UI comma
    ```bash
    bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
    ```
-4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your add-ons appear under **Local add-ons**.
+4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your apps appear under **Local apps**.
 
 ## Sponsor
 
@@ -102,7 +113,7 @@ Fabio Mauro
 
 Fabio Mauro Bigmoby
 
-Project forked from [Wireguard add-on][original_project].
+Project forked from [Wireguard app][original_project].
 
 For a full list of all authors and contributors,
 check [the contributor's page][contributors].

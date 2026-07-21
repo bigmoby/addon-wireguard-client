@@ -2,7 +2,7 @@
 	"name":"Example devcontainer for add-on repositories",
 	"image":"ghcr.io/home-assistant/devcontainer:addons",
 	"appPort":[
-	   "8123:8123",
+	   "8124:8123",
 	   "4357:4357"
 	],
 	"postStartCommand":"bash devcontainer_bootstrap",
@@ -35,9 +35,8 @@
 	   }
 	},
 	"mounts":[
-	   "source=${localWorkspaceFolder},target=/workspaces/addon-wireguard-client,type=bind,consistency=cached",
 	   "type=volume,target=/var/lib/docker",
        "type=volume,target=/mnt/supervisor",
-       "source=${localWorkspaceFolder},target=/mnt/supervisor/addons/local/addon-wireguard,type=bind,consistency=cached"
+       "source=${localWorkspaceFolder}/wireguard_client,target=/mnt/supervisor/apps/local/wireguard_client,type=bind,consistency=cached"
 	]
  }
