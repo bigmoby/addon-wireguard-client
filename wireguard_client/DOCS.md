@@ -137,6 +137,8 @@ failover:
 
 This app provides a unified API on port 51821 with comprehensive functionality.
 
+> **🔒 Security & API Bind Address (`api_bind`)**: By default, the API binds to `127.0.0.1` (localhost only) for enhanced security. If you need to query the API from other devices on your local network or via `http://local-wireguard-client:51821`, you can set `api_bind: "0.0.0.0"` in your add-on configuration options.
+
 > **📚 Complete Documentation**: For comprehensive API documentation, detailed examples, automation templates, and advanced configurations, see **[API.md](https://github.com/bigmoby/addon-wireguard-client/blob/main/wireguard_client/API.md)**.
 
 ### 📊 Status Endpoint (GET /)

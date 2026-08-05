@@ -2,6 +2,8 @@
 
 This addon provides a unified API with comprehensive sensor data and service endpoints on a single port (51821).
 
+> **🔒 Security Note (`api_bind`)**: By default (from v0.3.2+), the API binds to `127.0.0.1` (localhost only) for enhanced security (`api_bind: "127.0.0.1"`). If accessing the API across your LAN or using `http://local-wireguard-client:51821` from outside loopback, set `api_bind: "0.0.0.0"` in your add-on options.
+
 ## 📊 Status API Endpoint
 
 ### **GET /** (Port 51821)

@@ -1,3 +1,9 @@
+## What's changed in Wireguard Client App v0.3.2
+
+### 🔒 Security Enhancements
+
+- **Configurable API Bind IP Address (#63)**: Added a new `api_bind` configuration option (`api_bind: "127.0.0.1"`) to control which network interface the unified API listens on. By default, the API now binds to `127.0.0.1` (localhost only) to prevent unauthenticated access across host interfaces when `host_network: true` is enabled. Users requiring LAN or external network access can set `api_bind: "0.0.0.0"`.
+
 ## What's changed in Wireguard Client App v0.3.1
 
 ### 🐛 Bug Fixes
