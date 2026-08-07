@@ -137,7 +137,7 @@ failover:
 
 This app provides a unified API on port 51821 with comprehensive functionality.
 
-> **🔒 Security & API Bind Address (`api_bind`)**: By default, the API binds to `127.0.0.1` (localhost only) for enhanced security. If you need to query the API from other devices on your local network or via `http://local-wireguard-client:51821`, you can set `api_bind: "0.0.0.0"` in your add-on configuration options.
+> **🔒 Security & API Bind Address (`api_bind`)**: By default, the API binds to `127.0.0.1` (localhost only) for enhanced security. Use `http://127.0.0.1:51821` in your Home Assistant REST sensors and commands. If you set `api_bind: "0.0.0.0"` in your add-on options to allow external/LAN network access, you can also use `http://local-wireguard-client:51821` or your host LAN IP.
 
 > **📚 Complete Documentation**: For comprehensive API documentation, detailed examples, automation templates, and advanced configurations, see **[API.md](https://github.com/bigmoby/addon-wireguard-client/blob/main/wireguard_client/API.md)**.
 
@@ -166,7 +166,7 @@ With the use of the [Home Assistant RESTful][ha-rest] integration, you can creat
 
 ```yaml
 rest:
-  - resource: "http://local-wireguard-client:51821"
+  - resource: "http://127.0.0.1:51821"
     scan_interval: 30
     timeout: 10
     verify_ssl: false
@@ -187,11 +187,11 @@ rest:
 ```yaml
 rest_command:
   wireguard_test:
-    url: "http://local-wireguard-client:51821/test"
+    url: "http://127.0.0.1:51821/test"
     method: GET
 
   wireguard_reconnect:
-    url: "http://local-wireguard-client:51821/reconnect"
+    url: "http://127.0.0.1:51821/reconnect"
     method: GET
 ```
 

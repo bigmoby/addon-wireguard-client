@@ -2,7 +2,7 @@
 
 This addon provides a unified API with comprehensive sensor data and service endpoints on a single port (51821).
 
-> **🔒 Security Note (`api_bind`)**: By default (from v0.3.2+), the API binds to `127.0.0.1` (localhost only) for enhanced security (`api_bind: "127.0.0.1"`). If accessing the API across your LAN or using `http://local-wireguard-client:51821` from outside loopback, set `api_bind: "0.0.0.0"` in your add-on options.
+> **🔒 Security Note (`api_bind`)**: By default (from v0.3.2+), the API binds to `127.0.0.1` (localhost only) for enhanced security (`api_bind: "127.0.0.1"`). Use `http://127.0.0.1:51821` as the resource URL in your Home Assistant REST sensors and commands. If accessing the API across your LAN or using `http://local-wireguard-client:51821` from outside loopback, set `api_bind: "0.0.0.0"` in your add-on options.
 
 ## 📊 Status API Endpoint
 
@@ -110,7 +110,7 @@ Add to your `configuration.yaml`:
 
 ```yaml
 rest:
-  - resource: "http://local-wireguard-client:51821"
+  - resource: "http://127.0.0.1:51821"
     scan_interval: 30
     timeout: 10
     verify_ssl: false
@@ -162,7 +162,7 @@ For simple on/off status monitoring:
 
 ```yaml
 rest:
-  - resource: "http://local-wireguard-client:51821"
+  - resource: "http://127.0.0.1:51821"
     scan_interval: 30
     timeout: 10
     verify_ssl: false
@@ -180,15 +180,15 @@ Add to your `configuration.yaml`:
 ```yaml
 rest_command:
   wireguard_reconnect:
-    url: "http://local-wireguard-client:51821/reconnect"
+    url: "http://127.0.0.1:51821/reconnect"
     method: GET
 
   wireguard_restart:
-    url: "http://local-wireguard-client:51821/restart"
+    url: "http://127.0.0.1:51821/restart"
     method: GET
 
   wireguard_test:
-    url: "http://local-wireguard-client:51821/test"
+    url: "http://127.0.0.1:51821/test"
     method: GET
 ```
 
@@ -204,7 +204,7 @@ When you configure a REST sensor in `configuration.yaml`:
 
 ```yaml
 rest:
-  - resource: "http://local-wireguard-client:51821" # ← Step 1: API endpoint
+  - resource: "http://127.0.0.1:51821" # ← Step 1: API endpoint
     sensor:
       - name: "WireGuard Status"
         value_template: "{{ value_json.status }}" # ← Step 4: Use value_json
@@ -214,7 +214,7 @@ rest:
 
 1. **Home Assistant makes HTTP request**:
 
-   - Periodically (based on `scan_interval`), Home Assistant sends a GET request to `http://local-wireguard-client:51821`
+   - Periodically (based on `scan_interval`), Home Assistant sends a GET request to `http://127.0.0.1:51821`
    - Your WireGuard addon API responds with JSON
 
 2. **API Response** (from WireGuard addon):
@@ -246,7 +246,7 @@ rest:
 │  REST Sensor    │
 └────────┬────────┘
          │
-         │ 1. GET http://local-wireguard-client:51821
+         │ 1. GET http://127.0.0.1:51821
          │    (every scan_interval seconds)
          ▼
 ┌─────────────────┐
@@ -458,7 +458,7 @@ Create a separate REST sensor that stores the entire JSON response:
 
 ```yaml
 rest:
-  - resource: "http://local-wireguard-client:51821"
+  - resource: "http://127.0.0.1:51821"
     scan_interval: 30
     sensor:
       - name: "WireGuard API JSON"
@@ -502,7 +502,7 @@ Use `rest_command` or make a direct HTTP request in your template/automation:
 # In a script or automation
 rest_command:
   wireguard_get_status:
-    url: "http://local-wireguard-client:51821"
+    url: "http://127.0.0.1:51821"
     method: GET
 ```
 
@@ -587,16 +587,16 @@ entities:
 
 ```bash
 # Get status
-curl http://local-wireguard-client:51821
+curl http://127.0.0.1:51821
 
 # Reconnect VPN
-curl http://local-wireguard-client:51821/reconnect
+curl http://127.0.0.1:51821/reconnect
 
 # Restart WireGuard
-curl http://local-wireguard-client:51821/restart
+curl http://127.0.0.1:51821/restart
 
 # Test WireGuard connection (comprehensive)
-curl http://local-wireguard-client:51821/test
+curl http://127.0.0.1:51821/test
 ```
 
 ### **Using Home Assistant Developer Tools:**
@@ -607,19 +607,19 @@ curl http://local-wireguard-client:51821/test
 
 ## 📝 Notes
 
-- **API URL**: `http://local-wireguard-client:51821` (port 51821)
-- **Replace URL**: Replace `local-wireguard-client` with your addon hostname
+- **API URL**: `http://127.0.0.1:51821` (port 51821)
+- **Hostname Resolution**: Use `127.0.0.1` by default. If `api_bind: "0.0.0.0"` is set, you can also use `http://local-wireguard-client:51821` or your host LAN IP
 - **Development vs Production**: In development environments, you may need to use `localhost` instead of the addon hostname
 - **Update Frequency**: Status updates every few seconds
 - **Error Handling**: All endpoints return JSON with success/error status
 - **Compatibility**: Works with Home Assistant 0.7.4+ (RESTful integration introduced in 0.7.4)
-- **Security**: API is only accessible from localhost by default
+- **Security**: API is only accessible from localhost by default (`api_bind: "127.0.0.1"`)
 - **Timeout**: Default 10 seconds, configurable via `timeout` parameter
 - **SSL**: Set `verify_ssl: false` for local addon communication
 - **Templates**: Use `value_json` to access JSON data in REST sensor templates (see "Understanding `value_json`" section above for details)
 - **Peers Array**: The `peers` field is a JSON array (not an object or string), use `peers[0]` to access the first peer (not `peers.peer_1`). See "Template Examples" section for detailed usage.
 - **Empty Handshake**: When no handshake has occurred, the API returns `"Never"` in the `latest_handshake` field (as documented in the Fields Description above). After configuring sensors, restart Home Assistant or reload the REST integration to see changes
-- **Troubleshooting**: If sensors show "Never" or are missing, verify that WireGuard is running and has peers configured. Check the API response with: `curl http://local-wireguard-client:51821 | jq '.peers'` to see if the peers array has data
+- **Troubleshooting**: If sensors show "Never" or are missing, verify that WireGuard is running and has peers configured. Check the API response with: `curl http://127.0.0.1:51821 | jq '.peers'` to see if the peers array has data
 
 ## 🚀 Benefits
 
