@@ -29,8 +29,31 @@ mkdir -p "$WORKDIR"
 
 # --- Create per-connection handler (executed by socat via SYSTEM=) ---
 HANDLER="${WORKDIR}/handler.sh"
+
+# --- Ping targets for GET /test: "<peer public key>\t<ping ip>" ---
+# Per-peer ping_ip, falling back to the global failover.ping_ip
+PING_TARGETS="${WORKDIR}/ping_targets"
+global_ping_ip=""
+if bashio::config.has_value 'failover.ping_ip'; then
+    global_ping_ip="$(bashio::config 'failover.ping_ip')"
+fi
+: > "$PING_TARGETS"
+for peer in $(bashio::config 'peers|keys'); do
+    peer_public_key="$(bashio::config "peers[${peer}].public_key")"
+    peer_ping_ip="${global_ping_ip}"
+    if bashio::config.has_value "peers[${peer}].ping_ip"; then
+        peer_ping_ip="$(bashio::config "peers[${peer}].ping_ip")"
+    fi
+    if [[ -n "${peer_public_key}" && -n "${peer_ping_ip}" ]]; then
+        printf '%s\t%s\n' "${peer_public_key}" "${peer_ping_ip}" >> "$PING_TARGETS"
+    fi
+done
+export PING_TARGETS
+
 cat > "$HANDLER" <<'EOF'
-#!/usr/bin/with-contenv bashio
+#!/bin/bash
+# Plain bash (no bashio/jq): the handler runs once per HTTP request, so it
+# must stay lightweight. The environment is inherited from socat.
 set -euo pipefail
 
 # === IMPORTANTISSIMO: separa la socket HTTP da QUALSIASI log ===
@@ -52,6 +75,13 @@ send_json() {
   printf 'Connection: close\r\n' >&3
   printf '\r\n' >&3
   printf '%s' "${_body}" >&3
+}
+
+# Helper: stringa JSON quotata ed escapata (backslash e doppi apici)
+json_str() {
+  local _s="${1//\\/\\\\}"
+  _s="${_s//\"/\\\"}"
+  printf '"%s"' "${_s}"
 }
 
 # Leggi la request line (es. "GET /test HTTP/1.1")
@@ -113,12 +143,12 @@ case "$action" in
         fi
 
         # Create peer object (always include latest_handshake)
-        peer_obj="$(bashio::var.json \
-          'endpoint' "${endpoint}" \
-          'latest_handshake' "${latest_handshake}" \
-          'transfer_rx' "^${transfer_rx}" \
-          'transfer_tx' "^${transfer_tx}" \
-          'uptime_seconds' "^${uptime_seconds}")"
+        peer_obj="$(printf '{"endpoint":%s,"latest_handshake":%s,"transfer_rx":%s,"transfer_tx":%s,"uptime_seconds":%s}' \
+          "$(json_str "${endpoint}")" \
+          "$(json_str "${latest_handshake}")" \
+          "${transfer_rx}" \
+          "${transfer_tx}" \
+          "${uptime_seconds}")"
 
         total_rx=$(( total_rx + transfer_rx ))
         total_tx=$(( total_tx + transfer_tx ))
@@ -133,18 +163,14 @@ case "$action" in
       fi
     done <<< "$(wg show all dump 2>/dev/null || true)"
 
-    # Build JSON manually to avoid double-serialization of peers array
-    # bashio::var.json would serialize peers_json as a string, but we need it as an array
-    json_base="$(bashio::var.json \
-      'status' "${interface_status}" \
-      'total_traffic_rx' "^${total_rx}" \
-      'total_traffic_tx' "^${total_tx}" \
-      'peer_count' "^${peer_count}" \
-      'timestamp' "^${current_time}")"
-
-    # Insert peers array directly into JSON (remove closing brace, add peers, close)
-    # json_base ends with }, so we replace the } with , "peers": [...]}
-    json="${json_base%'}'}"', "peers": '"${peers_json}"'}'
+    # Build JSON manually (peers_json is already a JSON array)
+    json="$(printf '{"status":%s,"total_traffic_rx":%s,"total_traffic_tx":%s,"peer_count":%s,"timestamp":%s, "peers": %s}' \
+      "$(json_str "${interface_status}")" \
+      "${total_rx}" \
+      "${total_tx}" \
+      "${peer_count}" \
+      "${current_time}" \
+      "${peers_json}")"
 
     send_json "200 OK" "${json}"
     ;;
@@ -175,16 +201,27 @@ case "$action" in
       exit 0
     fi
 
-    latest_handshake="$(wg show wg0 dump | awk 'NR==1{print $5}')"
-    [[ "${latest_handshake}" =~ ^[0-9]+$ ]] || latest_handshake=0
+    # Peer with the most recent handshake (epoch, 0 = never)
+    read -r peer_key latest_handshake < <(wg show wg0 latest-handshakes | awk 'BEGIN{m=0; k="-"} $2>m{m=$2; k=$1} END{print k, m}')
+    [[ "${latest_handshake:-}" =~ ^[0-9]+$ ]] || latest_handshake=0
     current_time="$(date +%s)"
 
     if (( latest_handshake != 0 )) && (( current_time - latest_handshake < 300 )); then
-      vpn_server_ip="$(wg show wg0 allowed-ips | awk 'NR==1{print $2}' | cut -d'/' -f1)"
-      if [[ -n "${vpn_server_ip:-}" ]] && ping -c 1 -W 2 "${vpn_server_ip}" >/dev/null 2>&1; then
-        send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake and server reachable"}'
+      # Ping target: configured ping_ip (per-peer or global, see PING_TARGETS),
+      # otherwise the peer's first host (/32) allowed IP. Never a network address.
+      ping_target="$(awk -F'\t' -v k="${peer_key}" '$1==k{print $2; exit}' "${PING_TARGETS:-/run/wg-unified-api/ping_targets}" 2>/dev/null || true)"
+      if [[ -z "${ping_target}" ]]; then
+        ping_target="$(wg show wg0 allowed-ips | awk -v k="${peer_key}" '$1==k{for(i=2;i<=NF;i++) if($i ~ /\/32$/){sub(/\/32$/, "", $i); print $i; exit}}')"
+      fi
+
+      if [[ -z "${ping_target}" ]]; then
+        send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake","ping":"skipped","ping_target":""}'
+      elif ping -c 1 -W 2 "${ping_target}" >/dev/null 2>&1; then
+        send_json "200 OK" "$(printf '{"action":"test","result":"success","message":"WireGuard active with recent handshake and server reachable","ping":"ok","ping_target":%s}' "$(json_str "${ping_target}")")"
       else
-        send_json "200 OK" '{"action":"test","result":"success","message":"WireGuard active with recent handshake"}'
+        send_json "200 OK" "$(printf '{"action":"test","result":"error","message":%s,"ping":"failed","ping_target":%s}' \
+          "$(json_str "WireGuard active with recent handshake, but ${ping_target} is not reachable")" \
+          "$(json_str "${ping_target}")")"
       fi
     else
       send_json "200 OK" '{"action":"test","result":"error","message":"WireGuard interface exists but no recent handshake"}'
@@ -200,7 +237,7 @@ chmod +x "$HANDLER"
 
 # Clean up on exit
 cleanup() {
-  rm -f "$HANDLER"
+  rm -f "$HANDLER" "$PING_TARGETS"
 }
 trap cleanup EXIT
 

@@ -33,6 +33,16 @@ if [ -n "${ping_ip}" ]; then
 fi
 bashio::log.info "Primary revert interval: ${revert_interval}s"
 
+# Per-peer ping IPs, read once (fallback to the global failover.ping_ip)
+declare -a peer_ping_ips=()
+for (( i = 0; i < peer_count; i++ )); do
+    if bashio::config.has_value "peers[${i}].ping_ip"; then
+        peer_ping_ips[i]=$(bashio::config "peers[${i}].ping_ip")
+    else
+        peer_ping_ips[i]="${ping_ip}"
+    fi
+done
+
 # State variables
 active_index="${ACTIVE_PEER_INDEX:-0}"
 failures=0
@@ -82,12 +92,7 @@ check_health() {
         bashio::log.warning "Latest handshake is too old (${handshake_age}s ago, threshold: ${handshake_threshold}s)."
         
         # Secondary check: Ping (if configured)
-        local current_ping_ip=""
-        if bashio::config.has_value "peers[${active_index}].ping_ip"; then
-            current_ping_ip=$(bashio::config "peers[${active_index}].ping_ip")
-        else
-            current_ping_ip="${ping_ip}"
-        fi
+        local current_ping_ip="${peer_ping_ips[active_index]:-${ping_ip}}"
 
         if [ -n "${current_ping_ip}" ]; then
             bashio::log.info "Handshake threshold exceeded. Performing ping verification to ${current_ping_ip}..."

@@ -87,8 +87,16 @@ Restarts the WireGuard service.
 Comprehensive WireGuard connection test that checks:
 
 - Interface existence and configuration
-- Handshake validity (within last 3 minutes)
-- Server connectivity (when possible)
+- Handshake validity (within last 5 minutes)
+- Reachability of a ping target through the tunnel (when one is available)
+
+The ping target is chosen, in order, from:
+
+1. the `ping_ip` of the peer with the most recent handshake (`peers[].ping_ip`)
+2. the global `failover.ping_ip`
+3. the peer's first host address in `allowed_ips` (only `/32` entries, network addresses such as `10.6.0.0/24` are never pinged)
+
+If none is available, the ping is skipped.
 
 #### **Response:**
 
@@ -96,9 +104,13 @@ Comprehensive WireGuard connection test that checks:
 {
   "action": "test",
   "result": "success|error",
-  "message": "Description of the result"
+  "message": "Description of the result",
+  "ping": "ok|failed|skipped",
+  "ping_target": "10.6.0.1"
 }
 ```
+
+`ping` and `ping_target` are present only when a recent handshake was found. If the ping target is not reachable, `result` is `error` (with `"ping": "failed"`) even though the handshake is recent. Every call runs a fresh check, so `result` goes back to `success` as soon as the target is reachable again.
 
 ## 🏠 Home Assistant Integration
 
