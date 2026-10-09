@@ -1,0 +1,90 @@
+---
+name: CI
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ARCHITECTURES: '["amd64", "aarch64"]'
+  IMAGE_NAME: addon-wireguard-client
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Add-on linter
+        uses: frenck/action-addon-linter@v2.21.1
+        with:
+          path: "./wireguard_client"
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.5.0
+        with:
+          dockerfile: wireguard_client/Dockerfile
+
+      - name: ShellCheck
+        run: |
+          find wireguard_client/rootfs/etc -type f -print0 \
+            | xargs -0 shellcheck --shell=bash
+
+      - name: YAMLlint
+        run: |
+          pip install --quiet yamllint
+          yamllint --strict .github/workflows wireguard_client/build.yaml
+          yamllint wireguard_client/config.yaml
+
+  init:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Get build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.09.0
+        with:
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+          registry-prefix: docker.io/bigmoby
+
+  build:
+    name: Test build ${{ matrix.arch }}
+    needs: [lint, init]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Build image (no push)
+        uses: home-assistant/builder/actions/build-image@2026.09.0
+        with:
+          arch: ${{ matrix.arch }}
+          context: wireguard_client
+          image: ${{ matrix.image }}
+          image-tags: test
+          version: test
+          push: "false"
+          cosign: "false"
+          load: "true"
+
+      - name: Smoke test
+        env:
+          IMAGE: ${{ matrix.image }}:test
+        run: |
+          docker run --rm --entrypoint sh "${IMAGE}" -c \
+            'iptables --version | grep -q nf_tables && wg --version && socat -V >/dev/null'

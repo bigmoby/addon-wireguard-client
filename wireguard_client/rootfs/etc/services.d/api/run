@@ -251,4 +251,4 @@ bashio::log.info "Starting WireGuard Unified API on ${BIND_IP}:${PORT}..."
 # -T 5: inactivity timeout; -t 5: connection timeout
 # fork: 1 processo per connessione; reuseaddr: restart veloci; keepalive: TCP keepalive
 # (per debug: aggiungi -d -d subito dopo 'socat')
-exec socat -T 5 -t 5 TCP-LISTEN:${PORT},bind=${BIND_IP},fork,reuseaddr,keepalive SYSTEM:"${HANDLER}"
+exec socat -T 5 -t 5 "TCP-LISTEN:${PORT},bind=${BIND_IP},fork,reuseaddr,keepalive" "SYSTEM:${HANDLER}"
