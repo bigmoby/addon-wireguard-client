@@ -1,34 +1,42 @@
 ## What's changed in Wireguard Client App v0.4.0
 
-### ⚠️ Breaking Changes
+### 🔥 Major Changes
 
-- **`GET /test` returns `error` when the ping target is unreachable**: when a ping target is available and does not answer, `result` is now `error` (with `"ping": "failed"`) even if the handshake is recent. Every call runs a fresh check, so `result` goes back to `success` as soon as the target is reachable again. Automations that only check `result == "success"` will now notice an unreachable target.
+#### 🐳 New Docker image
 
-### ⬆️ Updates
+The add-on is now built on a completely refreshed image:
 
-- **Base image**: `hassio-addons/base` 18.1.4 → 21.0.8 (Alpine 3.24.2, s6-overlay 3.2.3.2, bashio 0.19.0). Fixes all HIGH/CRITICAL vulnerabilities reported by Trivy on the Alpine packages (OpenSSL, c-ares, jq, ...).
-- **Pinned packages**: `iptables` 1.8.13, `wireguard-tools` 1.0.20260223, `openresolv` 3.17.4, `socat` 1.8.1.3.
+- **Base image**: `hassio-addons/base` 18.1.4 → **21.0.8** (Alpine 3.22 → **Alpine 3.24.2**, s6-overlay 3.2.3.2, bashio 0.19.0).
+- **Pinned packages**: `iptables` **1.8.13 (nf_tables backend)**, `wireguard-tools` 1.0.20260223, `openresolv` 3.17.4, `socat` 1.8.1.3.
+- **Security**: all HIGH/CRITICAL vulnerabilities reported on the Alpine packages of the previous image (OpenSSL, c-ares, jq, ...) are fixed.
+- **Built with the new Home Assistant toolchain**: images are built with the new `home-assistant/builder` actions on native amd64/aarch64 runners.
+
+Existing `post_up` / `post_down` iptables rules keep working unchanged: they now run on the nftables backend, which is what recent Home Assistant OS kernels provide.
+
+#### ⚠️ Breaking Change: `GET /test`
+
+`/test` now returns `error` when the ping target is unreachable. If a ping target is available and does not answer, `result` is now `error` (with `"ping": "failed"`) even when the handshake is recent. Every call runs a fresh check, so `result` returns to `success` as soon as the target is reachable again. Automations that only check `result == "success"` will now detect an unreachable target.
 
 ### 🐛 Bug Fixes
 
-- **`GET /test` always reported "no recent handshake"**: it read the interface line of `wg show dump` instead of the peer line. It now uses the most recent peer handshake.
-- **`GET /test` pinged a network address**: the ping target is now `peers[].ping_ip` of the active peer, then `failover.ping_ip`, then a `/32` allowed IP; network addresses such as `10.6.0.0/24` are never pinged. New `ping` (`ok|failed|skipped`) and `ping_target` fields.
-- **DNS with openresolv 3.17**: `resolvconf` refused to update `/etc/resolv.conf` ("signature mismatch") and the tunnel did not come up when `dns` is set. The system DNS is now kept as a base configuration and restored whenever the tunnel is down (e.g. while the failover switches peer).
+- **`/test` always reported "no recent handshake"**: it was reading the interface line instead of the peer line. It now uses the most recent peer handshake.
+- **`/test` pinged a network address** (e.g. `10.6.0.0`): the ping target is now the `ping_ip` of the active peer, then `failover.ping_ip`, then a `/32` allowed IP. Network addresses are never pinged. New `ping` (`ok|failed|skipped`) and `ping_target` fields.
+- **DNS with the new openresolv**: when `dns` is set, the tunnel could not start because `resolvconf` refused to update `/etc/resolv.conf` ("signature mismatch"). The system DNS is now kept as a base configuration and restored whenever the tunnel is down, so peer endpoints with a hostname (e.g. DuckDNS) remain resolvable during a failover switch.
 
 ### 🔒 Security
 
-- `wg0.conf` (which contains the private key) is now created with `600` permissions.
+- `wg0.conf`, which contains the private key, is now created with `600` permissions.
 
-### 🚀 Improvements
+### ⚡ Improvements
 
-- **Lighter API**: the per-request handler is plain bash (no bashio/jq), about 5x faster on `/status` with the same response format.
-- **Diagnostics**: the iptables version and backend are logged at startup, with a warning when the legacy backend is in use (see #62).
+- **Faster API**: the request handler has been rewritten in plain bash, making `/status` about 5x faster with exactly the same response format.
+- **Diagnostics**: the iptables version and backend are logged at startup, with a warning if the legacy backend is in use (see #62).
 - **Failover**: per-peer `ping_ip` values are read once at startup.
 
 ### 🛠️ Development
 
-- CI migrated to the new `home-assistant/builder` actions (the legacy action has been retired), with lint (add-on linter, hadolint, shellcheck, yamllint), test builds and Renovate.
-- Devcontainer updated to `ghcr.io/home-assistant/devcontainer:5-apps` (Supervisor beta channel, Home Assistant on port `8124`).
+- CI migrated to the new `home-assistant/builder` actions (the legacy action has been retired), with linting (add-on linter, hadolint, shellcheck, yamllint) and Renovate for dependency updates.
+- Devcontainer updated to `ghcr.io/home-assistant/devcontainer:5-apps`.
 
 ## What's changed in Wireguard Client App v0.3.2
 
