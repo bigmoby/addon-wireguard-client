@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-PORT="$(bashio::addon.port "51821/tcp" || true)"
+PORT="$(bashio::app.port "51821/tcp" || true)"
 if [[ -z "${PORT:-}" || "${PORT}" == "0" ]]; then
     bashio::log.warning "WireGuard Unified API disabled (no port exposed)."
     exec sleep infinity
