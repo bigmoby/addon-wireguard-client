@@ -133,6 +133,34 @@ failover:
 2. **Watchdog Daemon**: A background service monitors connection health. If the handshake age exceeds `handshake_threshold` (and `ping_ip` is unreachable if configured) for `max_failures` consecutive times, it switches the active peer to the next one in the list and restarts the interface.
 3. **Preemption (Revert)**: When running on a backup peer, the daemon will attempt to switch back to the primary peer (index 0) every `revert_interval` seconds to see if the main server has recovered.
 
+## Logging
+
+The optional `log_level` option controls how much the app writes to its log:
+
+```yaml
+log_level: info
+```
+
+Available levels, from the most to the least verbose: `trace`, `debug`, `info` (default), `notice`, `warning`, `error`, `fatal`.
+
+The WireGuard status (the output of `wg show`: peers, endpoints, latest handshake, transfer) is written to the log depending on the level:
+
+| `log_level` | WireGuard status in the log |
+| --- | --- |
+| `trace`, `debug` | Once, 30 seconds after startup, then **every 30 seconds** |
+| `info` (default) | **Once**, 30 seconds after startup |
+| `notice` and above | Never |
+
+To follow the tunnel continuously in the log (e.g. while troubleshooting), set `log_level: debug`. For day-to-day monitoring, prefer the [Unified API](#wireguard-client-unified-api) sensors, which do not fill the log.
+
+At startup the app also logs the iptables version and backend used by `post_up` / `post_down`:
+
+```text
+INFO: iptables: iptables v1.8.13 (nf_tables)
+```
+
+If the backend is `legacy`, a warning is logged: recent Home Assistant OS kernels may not provide the legacy modules (e.g. `can't initialize iptables table 'nat'`).
+
 ## WireGuard Client Unified API
 
 This app provides a unified API on port 51821 with comprehensive functionality.
@@ -197,18 +225,16 @@ rest_command:
 
 ## Local Development
 
-If you are developing this app in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+The repository ships a devcontainer based on `ghcr.io/home-assistant/devcontainer:5-apps` that runs a full Home Assistant (Supervisor beta channel) with this app available as a local app.
 
-1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
-2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local apps folder:
-   ```bash
-   ./devcontainer_bootstrap
-   ```
-3. Restart the Supervisor:
-   ```bash
-   bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
-   ```
-4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your apps appear under **Local apps**.
+1. Open the repository in the devcontainer ("Dev Containers: Reopen in Container").
+2. Run the **Start Home Assistant** task (or `supervisor_run` in a terminal).
+3. Open Home Assistant at `http://localhost:8124` and complete the onboarding.
+4. Go to **Settings > Apps > App Store**: the app is listed under **Local apps**.
+
+To test your local changes, comment out the `image:` line in `wireguard_client/config.yaml` (do not commit it): the Supervisor then builds the app from the local `Dockerfile` instead of pulling the published image. After changing the code, use **Rebuild** on the app page.
+
+The `wireguard-server/` folder contains two local WireGuard servers to test the client and the failover (see `wireguard-server/README.md`).
 
 ## Authors & contributors
 
