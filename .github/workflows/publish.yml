@@ -1,30 +1,67 @@
-name: "Publish"
+---
+name: Publish
 
+# yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+env:
+  ARCHITECTURES: '["amd64", "aarch64"]'
+  IMAGE_NAME: addon-wireguard-client
+
 jobs:
-  publish:
-    name: Publish
+  init:
+    name: Initialize build
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
-      - name: Login to DockerHub
-        uses: docker/login-action@v3.2.0
+        uses: actions/checkout@v7.0.1
+
+      - name: Get add-on version
+        id: version
+        run: |
+          version="$(yq -r '.version' wireguard_client/config.yaml)"
+          echo "Add-on version: ${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Get build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.09.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Home Assistant builder
-        uses: home-assistant/builder@2024.08.2
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+          registry-prefix: docker.io/bigmoby
+
+  publish:
+    name: Publish ${{ matrix.arch }} image
+    needs: init
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Build and push image
+        uses: home-assistant/builder/actions/build-image@2026.09.0
         with:
-          args: |
-            --repository https://github.com/bigmoby/addon-wireguard-client \
-            --target wireguard_client \
-            --branch main \
-            --all \
-            --docker-hub bigmoby \
-            --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
-            --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
+          arch: ${{ matrix.arch }}
+          context: wireguard_client
+          container-registry: docker.io
+          container-registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          container-registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          version: ${{ needs.init.outputs.version }}
+          push: "true"
+          skip-existing: ${{ needs.init.outputs.version }}
+          cosign: "false"

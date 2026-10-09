@@ -9,6 +9,14 @@ s6-svc -O /run/service/wireguard_client
 
 bashio::log.info "Starting WireGuard Client..."
 
+# Log the iptables backend used by post_up/post_down (expected: nf_tables)
+iptables_version="$(iptables --version 2>/dev/null || echo "not available")"
+bashio::log.info "iptables: ${iptables_version}"
+if [[ "${iptables_version}" == *"legacy"* ]]; then
+    bashio::log.warning "iptables is using the legacy backend: recent Home Assistant OS"
+    bashio::log.warning "kernels may not provide the legacy modules (e.g. table 'nat')."
+fi
+
 # This is alpha software. We need to set this to instruct
 # WireGuard we are OK to go.
 export WG_I_PREFER_BUGGY_USERSPACE_TO_POLISHED_KMOD=1
