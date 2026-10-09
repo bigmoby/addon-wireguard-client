@@ -31,8 +31,12 @@ config="/etc/wireguard/${interface}.conf"
 ###########################
 # Interface configuration #
 ###########################
+# The configuration contains the private key: keep it readable by root only
+umask 077
+
 # Start creation of configuration
 echo "[Interface]" > "${config}"
+chmod 600 "${config}"
 
 # Determine active peer index
 active_peer_idx="${ACTIVE_PEER_INDEX:-0}"
@@ -189,7 +193,7 @@ for peer in $(bashio::config 'peers|keys'); do
         echo ""
         echo "[Peer]"
         echo "PublicKey = ${peer_public_key}"
-        if [ ! $pre_shared_key == "" ]
+        if [ -n "${pre_shared_key}" ]
         then
             echo "PreSharedKey = ${pre_shared_key}"
         fi
