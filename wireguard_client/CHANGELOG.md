@@ -1,3 +1,14 @@
+## What's changed in Wireguard Client App v0.4.1
+
+### 🐛 Bug Fixes
+
+- **WireGuard status flooding the log**: the status service printed `wg show` every ~30 seconds because it exited after each run and was restarted by s6. The status is now logged once, 30 seconds after startup, with the default `log_level: info`; it is logged every 30 seconds only with `log_level: debug` (or `trace`), and never with `notice` or higher.
+
+### 📚 Documentation
+
+- New **Logging** section in the documentation (`log_level` and WireGuard status output, iptables backend log).
+- Updated the **Local Development** section for the new devcontainer.
+
 ## What's changed in Wireguard Client App v0.4.0
 
 ### 🔥 Major Changes
