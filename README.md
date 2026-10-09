@@ -29,6 +29,10 @@ in the industry.
 
 ## Breaking Changes
 
+- **`GET /test` returns `error` when the ping target is unreachable (v0.4.0)**
+
+From version **_0.4.0_**, the `/test` endpoint of the Unified API returns `"result": "error"` (with `"ping": "failed"`) when a ping target is available but does not answer, even if the handshake is recent. Every call runs a fresh check, so it goes back to `success` as soon as the target is reachable again. See [API.md](wireguard_client/API.md#get-test).
+
 - **New repository url**
 
 From version **_0.1.0_** will be dismissed the current repository and this will be the new repository url:
@@ -43,6 +47,14 @@ Update migration process from version **_0.0.3-SNAPSHOT_** to version **_0.0.4-S
 **SO YOU MUST REMOVE AND INSTALL THE NEW APP VERSION** **_MANUALLY._**
 
 ## Known issues
+
+- **`can't initialize iptables table 'nat'` after upgrading Home Assistant OS**
+
+```
+iptables v1.8.7 (legacy): can't initialize iptables table `nat': Table does not exist (do you need to insmod?)
+```
+
+Recent Home Assistant OS kernels no longer provide the legacy iptables modules. `iptables v1.8.7 (legacy)` comes from app version **0.2.2 or older**: update the app. Current versions use the nftables backend and log it at startup (`INFO: iptables: iptables v1.8.13 (nf_tables)`). See [#62](https://github.com/bigmoby/addon-wireguard-client/issues/62).
 
 - **error setting key 'net.ipv4.conf.all.src_valid_mark'**
 
@@ -86,18 +98,18 @@ Thank you for being involved! :heart_eyes:
 
 ## Local Development
 
-If you are developing this app in a cloud environment where standard UI commands like "Dev Containers: Rebuild Container" might not be available, follow these steps to mount your workspace changes directly into the local Home Assistant Supervisor running in the container:
+The repository ships a devcontainer based on `ghcr.io/home-assistant/devcontainer:5-apps` that runs a full Home Assistant (Supervisor beta channel) with this app available as a local app.
 
-1. Stop any currently running `supervisor_run` process (use `Ctrl+C`).
-2. Run the bootstrap script manually to bind mount the workspace to the Supervisor's local apps folder:
-   ```bash
-   ./devcontainer_bootstrap
-   ```
-3. Restart the Supervisor:
-   ```bash
-   bash -c 'echo "Avvio Home Assistant..." && supervisor_run'
-   ```
-4. In Home Assistant, go to **Settings > Add-ons > Add-on Store** and verify your apps appear under **Local apps**.
+1. Open the repository in the devcontainer ("Dev Containers: Reopen in Container").
+2. Run the **Start Home Assistant** task (or `supervisor_run` in a terminal).
+3. Open Home Assistant at `http://localhost:8124` and complete the onboarding.
+4. Go to **Settings > Apps > App Store**: the app is listed under **Local apps**.
+
+To test your local changes, comment out the `image:` line in `wireguard_client/config.yaml` (do not commit it): the Supervisor then builds the app from the local `Dockerfile` instead of pulling the published image. After changing the code, use **Rebuild** on the app page.
+
+The [`wireguard-server/`](wireguard-server/README.md) folder contains two local WireGuard servers to test the client and the failover.
+
+Every pull request runs the CI (add-on linter, hadolint, shellcheck, yamllint and a test build for amd64/aarch64). Images are published to Docker Hub with the manual **Publish** workflow.
 
 ## Sponsor
 
@@ -148,12 +160,12 @@ SOFTWARE.
 [contributors]: https://github.com/bigmoby/addon-wireguard-client/graphs/contributors
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
-[commits-shield]: https://img.shields.io/github/commit-activity/y/hassio-addons/addon-wireguard.svg
+[commits-shield]: https://img.shields.io/github/commit-activity/y/bigmoby/addon-wireguard-client.svg
 [commits]: https://github.com/bigmoby/addon-wireguard-client/commits/main
 [discord-ha]: https://discord.gg/c5DvZ4e
 [discord-shield]: https://img.shields.io/discord/478094546522079232.svg
 [discord]: https://discord.me/hassioaddons
-[docs]: https://github.com/bigmoby/addon-wireguard-client/blob/master/wireguard/DOCS.md
+[docs]: https://github.com/bigmoby/addon-wireguard-client/blob/main/wireguard_client/DOCS.md
 [issue]: https://img.shields.io/github/issues/bigmoby/addon-wireguard-client.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/addon-wireguard-client.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2026.svg

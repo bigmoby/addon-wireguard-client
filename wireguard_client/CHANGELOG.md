@@ -2,11 +2,22 @@
 
 ### 🐛 Bug Fixes
 
-- **WireGuard status flooding the log**: the status service printed `wg show` every ~30 seconds because it exited after each run and was restarted by s6. The status is now logged once, 30 seconds after startup, with the default `log_level: info`; it is logged every 30 seconds only with `log_level: debug` (or `trace`), and never with `notice` or higher.
+- **WireGuard status flooding the log**: the status service printed the full `wg show` output every ~30 seconds, because it exited after each run and was restarted by the supervisor. The service now stays running, and the status is logged according to `log_level`:
+
+  | `log_level` | WireGuard status in the log |
+  | --- | --- |
+  | `trace`, `debug` | Once after 30 seconds, then **every 30 seconds** |
+  | `info` (default) | **Once**, 30 seconds after startup |
+  | `notice` and above | Never |
+
+  With the default configuration, the log now shows the tunnel status only once at startup instead of filling up over time. To get the periodic status back (e.g. while troubleshooting), set `log_level: debug`.
 
 ### 📚 Documentation
 
-- New **Logging** section in the documentation (`log_level` and WireGuard status output, iptables backend log).
+- New **Configuration options** reference covering every option, including `api_bind`, `log_level`, `peers[].ping_ip` and the DNS behaviour.
+- New **Logging** section: how `log_level` works, when the WireGuard status is printed, and how to read the iptables backend line logged at startup.
+- Updated the `GET /test` description, plus a new "VPN health" binary sensor example in `API.md`.
+- README: new known issue for `can't initialize iptables table 'nat'` (#62), the v0.4.0 breaking change, and fixed links and badges.
 - Updated the **Local Development** section for the new devcontainer.
 
 ## What's changed in Wireguard Client App v0.4.0

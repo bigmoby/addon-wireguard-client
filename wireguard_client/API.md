@@ -1,6 +1,6 @@
-# WireGuard Client Addon - Unified API
+# WireGuard Client App - Unified API
 
-This addon provides a unified API with comprehensive sensor data and service endpoints on a single port (51821).
+This app provides a unified API with comprehensive sensor data and service endpoints on a single port (51821).
 
 > **🔒 Security Note (`api_bind`)**: By default (from v0.3.2+), the API binds to `127.0.0.1` (localhost only) for enhanced security (`api_bind: "127.0.0.1"`). Use `http://127.0.0.1:51821` as the resource URL in your Home Assistant REST sensors and commands. If accessing the API across your LAN or using `http://local-wireguard-client:51821` from outside loopback, set `api_bind: "0.0.0.0"` in your add-on options.
 
@@ -111,6 +111,25 @@ If none is available, the ping is skipped.
 ```
 
 `ping` and `ping_target` are present only when a recent handshake was found. If the ping target is not reachable, `result` is `error` (with `"ping": "failed"`) even though the handshake is recent. Every call runs a fresh check, so `result` goes back to `success` as soon as the target is reachable again.
+
+> **Changed in v0.4.0**: before v0.4.0, `/test` always reported "no recent handshake" and ignored `ping_ip`.
+
+#### **Example: VPN health binary sensor**
+
+```yaml
+rest:
+  - resource: "http://127.0.0.1:51821/test"
+    scan_interval: 60
+    timeout: 10
+    binary_sensor:
+      - name: "WireGuard Healthy"
+        value_template: "{{ value_json.result == 'success' }}"
+        device_class: "connectivity"
+        json_attributes:
+          - message
+          - ping
+          - ping_target
+```
 
 ## 🏠 Home Assistant Integration
 

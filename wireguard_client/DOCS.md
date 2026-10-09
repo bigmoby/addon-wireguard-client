@@ -95,6 +95,30 @@ peers:
 1. Save the configuration.
 1. Start the "WireGuard" app
 
+### Configuration options
+
+| Option | Required | Description |
+| --- | --- | --- |
+| `log_level` | no | Log verbosity: `trace`, `debug`, `info` (default), `notice`, `warning`, `error`, `fatal`. See [Logging](#logging). |
+| `api_bind` | no | Address the [Unified API](#wireguard-client-unified-api) listens on. Default `127.0.0.1` (localhost only); use `0.0.0.0` to expose it on all host interfaces. |
+| `interface.private_key` | yes | Private key of this client. |
+| `interface.address` | yes | Address of this client inside the VPN (e.g. `10.6.0.2`; `/24` is added if no prefix is given). |
+| `interface.dns` | no | DNS servers to use while the tunnel is up. |
+| `interface.post_up` / `interface.post_down` | no | Commands run after the interface is brought up / down (e.g. iptables rules). |
+| `interface.mtu` | yes | MTU of the WireGuard interface (e.g. `1420`). |
+| `peers[].public_key` | yes | Public key of the peer (server). |
+| `peers[].pre_shared_key` | no | Optional pre-shared key. |
+| `peers[].endpoint` | no* | `host:port` of the peer. *Required when connecting to a VPN server. |
+| `peers[].allowed_ips` | yes | Networks routed through the tunnel. `0.0.0.0/0` is not supported. |
+| `peers[].persistent_keep_alive` | yes | Keepalive interval in seconds (e.g. `25`). |
+| `peers[].ping_ip` | no | IP inside the VPN used to verify the peer is really reachable (by `GET /test` and by the failover watchdog), e.g. the VPN server address `10.6.0.1`. |
+| `peers[].private_key` / `address` / `dns` | no | Per-peer overrides of the `interface` values, used only when failover is enabled. |
+| `failover.*` | no | See [Automatic Peer Failover](#automatic-peer-failover). |
+
+> **ℹ️ DNS**: when `interface.dns` is set, those servers replace the system DNS while the tunnel is up. Whenever the tunnel is down (e.g. while the failover switches peer), the system DNS is restored, so endpoints with a hostname (e.g. DuckDNS) can still be resolved.
+
+> **💡 Tip**: set `ping_ip` on each peer. Without it, `GET /test` can only check the handshake (or ping a `/32` allowed IP, if any).
+
 ### Automatic Peer Failover
 
 If you have multiple WireGuard servers (e.g. for redundancy in case of power outages or downtime), you can configure the app to automatically switch to alternative peers when the active one goes down.
@@ -182,9 +206,9 @@ Returns detailed WireGuard status information including:
 
 Provides VPN control actions:
 
-- **Reconnect**: Restart WireGuard connection
-- **Restart**: Full service restart
-- **Test**: Comprehensive connection validation
+- **Reconnect** (`GET /reconnect`): Restart WireGuard connection
+- **Restart** (`GET /restart`): Full service restart
+- **Test** (`GET /test`): Connection health check: recent handshake (within 5 minutes) and, when a ping target is available, reachability through the tunnel. The ping target is the active peer's `ping_ip`, then `failover.ping_ip`, then a `/32` allowed IP. Returns `"result": "error"` if the target does not answer, and `success` again as soon as it does.
 
 ### 🏠 Home Assistant Integration
 
@@ -240,7 +264,7 @@ The `wireguard-server/` folder contains two local WireGuard servers to test the 
 
 The original setup of this repository is by [Fabio Mauro][bigmoby].
 
-This is a fork of Wireguard App
+This is a fork of [Wireguard App][original_project].
 
 ## License
 
